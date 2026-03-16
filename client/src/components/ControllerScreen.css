@@ -1,0 +1,230 @@
+.controller-screen {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  overflow: hidden;
+  font-family: inherit;
+  touch-action: none;
+}
+
+.controller-header {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: white;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.controller-header h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.8rem;
+}
+
+.player-info-bar {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.player-name-badge,
+.player-score-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+}
+
+.controller-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 2rem;
+}
+
+.joystick-section,
+.action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.joystick-section h2,
+.action-section h2 {
+  color: white;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.joystick-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px solid white;
+  border-radius: 50%;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  active: grab;
+  transition: background 0.2s;
+}
+
+.joystick-container:active {
+  background: rgba(255, 255, 255, 0.2);
+  cursor: grabbing;
+}
+
+.joystick-background {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.joystick-handle {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  transition: transform 0.05s ease-out;
+}
+
+.joystick-handle.active {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.joystick-hint {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.action-section {
+  flex-direction: column;
+}
+
+.action-button {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  color: #f5576c;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  active: scale(0.95);
+  user-select: none;
+}
+
+.action-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.controller-footer {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: white;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.connected-text {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.game-status {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .controller-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .controller-content {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .joystick-container {
+    width: 160px;
+    height: 160px;
+  }
+
+  .joystick-background {
+    width: 120px;
+    height: 120px;
+  }
+
+  .joystick-handle {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .controller-screen {
+    height: 100vh;
+  }
+
+  .controller-header {
+    padding: 1rem 0.5rem;
+  }
+
+  .controller-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .player-info-bar {
+    gap: 0.5rem;
+  }
+
+  .player-name-badge,
+  .player-score-badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .controller-content {
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+  }
+
+  .joystick-container {
+    width: 140px;
+    height: 140px;
+  }
+
+  .action-button {
+    width: 80px;
+    height: 80px;
+  }
+}

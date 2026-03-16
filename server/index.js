@@ -19,9 +19,14 @@ app.use(express.static(path.join(__dirname, '../client/build')));
 
 // Game state
 const gameState = {
+  host: null,
   players: {},
   gameActive: false
 };
+
+// Socket to player mapping
+const playerSockets = {};
+const socketRoles = {};
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
@@ -29,21 +34,35 @@ io.on('connection', (socket) => {
 
   // Player joins the game
   socket.on('join', (playerData) => {
-    gameState.players[socket.id] = {
-      id: socket.id,
-      name: playerData.name,
-      score: 0,
-      position: { x: 0, y: 0 }
-    };
+    const { name, role } = playerData;
     
+    socketRoles[socket.id] = role;
+
+    if (role === 'host') {
+      // Set as game host
+      if (gameState.host) {
+        // Already have a host, reject
+        socket.emit('error', { message: 'A host already exists' });
+        return;
+      }
+      gameState.host = socket.id;
+      playerSockets[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+    } else {
+      // Add as controller
+      playerSockets[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+    }
+
+    gameState.players = playerSockets;
     io.emit('playerJoined', gameState.players);
     socket.emit('gameState', gameState);
+
+    console.log(`${role === 'host' ? 'Host' : 'Controller'} joined: ${name}`);
   });
 
-  // Handle player movement or actions
+  // Handle player movement
   socket.on('playerMove', (position) => {
-    if (gameState.players[socket.id]) {
-      gameState.players[socket.id].position = position;
+    if (playerSockets[socket.id]) {
+      playerSockets[socket.id].position = position;
       io.emit('playerMoved', {
         playerId: socket.id,
         position: position
@@ -51,38 +70,63 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle player actions (game specific)
+  // Handle player actions
   socket.on('playerAction', (action) => {
-    io.emit('playerAction', {
-      playerId: socket.id,
-      action: action
-    });
+    if (playerSockets[socket.id]) {
+      // Broadcast action to all players
+      io.emit('playerAction', {
+        playerId: socket.id,
+        action: action
+      });
+    }
   });
 
-  // Start game
+  // Start game (only host can do this)
   socket.on('startGame', () => {
-    gameState.gameActive = true;
-    io.emit('gameStarted', gameState);
+    if (socket.id === gameState.host) {
+      gameState.gameActive = true;
+      io.emit('gameStarted', gameState);
+      console.log('Game started by host');
+    }
   });
 
-  // Reset game
+  // Reset game (only host can do this)
   socket.on('resetGame', () => {
-    Object.keys(gameState.players).forEach(key => {
-      gameState.players[key].score = 0;
-      gameState.players[key].position = { x: 0, y: 0 };
-    });
-    gameState.gameActive = false;
-    io.emit('gameReset', gameState);
+    if (socket.id === gameState.host) {
+      // Reset all player positions and scores
+      Object.keys(playerSockets).forEach(key => {
+        playerSockets[key].score = 0;
+        playerSockets[key].position = { x: 0, y: 0 };
+      });
+      gameState.gameActive = false;
+      gameState.players = playerSockets;
+      io.emit('gameReset', gameState);
+      console.log('Game reset by host');
+    }
   });
 
   // Player disconnects
   socket.on('disconnect', () => {
-    delete gameState.players[socket.id];
-    console.log(`Player disconnected: ${socket.id}`);
+    const role = socketRoles[socket.id];
+    
+    if (socket.id === gameState.host) {
+      console.log(`Host disconnected: ${socket.id}`);
+      gameState.host = null;
+      gameState.gameActive = false;
+      // Could handle host migration here if needed
+    }
+
+    delete playerSockets[socket.id];
+    delete socketRoles[socket.id];
+    gameState.players = playerSockets;
+
     io.emit('playerLeft', gameState.players);
+    console.log(`${role || 'Unknown'} disconnected: ${socket.id}`);
   });
 });
 
 server.listen(PORT, () => {
   console.log(`🎮 Game server running on http://localhost:${PORT}`);
+  console.log(`   Host: http://localhost:${PORT}?role=host`);
+  console.log(`   Controllers on mobile: http://<your-ip>:${PORT}?role=controller`);
 });

@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import GameLobby from './components/GameLobby';
-import GameCanvas from './components/GameCanvas';
+import RoleSelection from './components/RoleSelection';
+import HostScreen from './components/HostScreen';
+import ControllerScreen from './components/ControllerScreen';
 import './App.css';
 
 const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
 
 function App() {
   const [socket, setSocket] = useState(null);
+  const [role, setRole] = useState(null); // 'host' or 'controller'
   const [playerName, setPlayerName] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
   const [players, setPlayers] = useState({});
   const [myId, setMyId] = useState('');
+  const [gameState, setGameState] = useState(null);
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -33,26 +36,38 @@ function App() {
       }));
     });
 
-    newSocket.on('gameStarted', (gameState) => {
+    newSocket.on('gameStarted', (state) => {
       setGameStarted(true);
+      setGameState(state);
     });
 
-    newSocket.on('gameReset', (gameState) => {
+    newSocket.on('gameReset', (state) => {
       setGameStarted(false);
-      setPlayers(gameState.players);
+      setPlayers(state.players);
+      setGameState(state);
     });
 
     newSocket.on('playerLeft', (updatedPlayers) => {
       setPlayers(updatedPlayers);
     });
 
+    newSocket.on('gameState', (state) => {
+      setGameState(state);
+      setPlayers(state.players);
+      setGameStarted(state.gameActive);
+    });
+
     return () => newSocket.close();
   }, []);
+
+  const handleSelectRole = (selectedRole) => {
+    setRole(selectedRole);
+  };
 
   const handleJoinGame = (name) => {
     setPlayerName(name);
     if (socket) {
-      socket.emit('join', { name });
+      socket.emit('join', { name, role });
     }
   };
 
@@ -82,37 +97,31 @@ function App() {
 
   return (
     <div className="App">
-      {!playerName ? (
-        <GameLobby onJoin={handleJoinGame} />
-      ) : gameStarted ? (
-        <GameCanvas
+      {!role ? (
+        <RoleSelection onSelectRole={handleSelectRole} />
+      ) : !playerName ? (
+        <RoleSelection 
+          onSelectRole={handleSelectRole}
+          showNamePrompt={true}
+          onJoin={handleJoinGame}
+        />
+      ) : role === 'host' ? (
+        <HostScreen
           players={players}
           myId={myId}
-          onMove={handlePlayerMove}
-          onAction={handlePlayerAction}
-          onReset={handleResetGame}
+          gameStarted={gameStarted}
+          playerName={playerName}
+          onStartGame={handleStartGame}
+          onResetGame={handleResetGame}
         />
       ) : (
-        <div className="waiting-room">
-          <div className="waiting-content">
-            <h1>🎮 Socket Game Lobby</h1>
-            <p>Welcome, {playerName}!</p>
-            <div className="players-list">
-              <h2>Players ({Object.keys(players).length})</h2>
-              <ul>
-                {Object.values(players).map(player => (
-                  <li key={player.id}>
-                    {player.name}
-                    {player.id === myId && ' (You)'}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button className="start-button" onClick={handleStartGame}>
-              Start Game
-            </button>
-          </div>
-        </div>
+        <ControllerScreen
+          myId={myId}
+          playerName={playerName}
+          onMove={handlePlayerMove}
+          onAction={handlePlayerAction}
+          players={players}
+        />
       )}
     </div>
   );

@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './GameCanvas.css';
 
-function GameCanvas({ players, myId, onMove, onAction, onReset }) {
+function GameCanvas({ players, myId, onReset, isHost }) {
   const canvasRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const animationRef = useRef(null);
 
   useEffect(() => {
@@ -35,31 +34,30 @@ function GameCanvas({ players, myId, onMove, onAction, onReset }) {
 
       // Draw players
       Object.values(players).forEach((player, index) => {
-        const x = (player.position?.x || 0) + 100 + index * 60;
-        const y = (player.position?.y || 0) + 100;
+        const x = (player.position?.x || 0) + 200 + index * 60;
+        const y = (player.position?.y || 0) + 200;
 
         // Draw player circle
-        const isMe = player.id === myId;
-        ctx.fillStyle = isMe ? '#667eea' : '#764ba2';
+        ctx.fillStyle = '#667eea';
         ctx.beginPath();
         ctx.arc(x, y, 25, 0, Math.PI * 2);
         ctx.fill();
 
         // Draw border
-        ctx.strokeStyle = isMe ? '#fff' : '#e0e0e0';
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
 
         // Draw name
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(player.name, x, y + 35);
+        ctx.fillText(player.name, x, y + 40);
 
         // Draw score
-        ctx.font = '11px Arial';
-        ctx.fillStyle = '#999';
-        ctx.fillText(`Score: ${player.score || 0}`, x, y + 50);
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#bbb';
+        ctx.fillText(`Score: ${player.score || 0}`, x, y + 56);
       });
 
       animationRef.current = requestAnimationFrame(draw);
@@ -74,24 +72,6 @@ function GameCanvas({ players, myId, onMove, onAction, onReset }) {
     };
   }, [players, myId]);
 
-  const handleCanvasClick = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 100;
-    const y = e.clientY - rect.top - 100;
-
-    onMove({ x, y });
-    onAction('click');
-  };
-
-  const handleMouseMove = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setMousePos({ x, y });
-  };
-
   return (
     <div className="game-container">
       <div className="game-header">
@@ -101,20 +81,20 @@ function GameCanvas({ players, myId, onMove, onAction, onReset }) {
       
       <canvas
         ref={canvasRef}
-        width={800}
-        height={600}
-        onClick={handleCanvasClick}
-        onMouseMove={handleMouseMove}
+        width={1000}
+        height={700}
         className="game-canvas"
       />
 
       <div className="game-footer">
         <div className="controls-info">
-          <p>Click on the canvas to move your character</p>
+          <p>Players are controlling their characters from their phones</p>
         </div>
-        <button className="reset-button" onClick={onReset}>
-          End Game
-        </button>
+        {isHost && (
+          <button className="reset-button" onClick={onReset}>
+            End Game
+          </button>
+        )}
       </div>
     </div>
   );
