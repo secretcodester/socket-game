@@ -39,24 +39,23 @@ io.on('connection', (socket) => {
     socketRoles[socket.id] = role;
 
     if (role === 'host') {
-      // Set as game host
+      // Set as game host (don't add to players list)
       if (gameState.host) {
         // Already have a host, reject
         socket.emit('error', { message: 'A host already exists' });
         return;
       }
       gameState.host = socket.id;
-      playerSockets[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+      console.log(`Host joined: ${name}`);
     } else {
       // Add as controller
       playerSockets[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+      console.log(`Controller joined: ${name}`);
     }
 
     gameState.players = playerSockets;
     io.emit('playerJoined', gameState.players);
     socket.emit('gameState', gameState);
-
-    console.log(`${role === 'host' ? 'Host' : 'Controller'} joined: ${name}`);
   });
 
   // Handle player movement

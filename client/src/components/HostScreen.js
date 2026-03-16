@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import GameCanvas from './GameCanvas';
+import HostGameDashboard from './HostGameDashboard';
 import './HostScreen.css';
 
 function HostScreen({
@@ -71,11 +71,9 @@ function HostScreen({
   }
 
   return (
-    <GameCanvas
+    <HostGameDashboard
       players={players}
-      myId={myId}
       onReset={handleResetGame}
-      isHost={true}
     />
   );
 }
