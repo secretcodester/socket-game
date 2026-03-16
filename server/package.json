@@ -1,0 +1,17 @@
+{
+  "name": "socket-game-server",
+  "version": "1.0.0",
+  "description": "WebSocket-based couch game server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.5.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
