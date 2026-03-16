@@ -30,10 +30,10 @@ function HostScreen({
           <p className="host-info">Waiting for players...</p>
 
           <div className="players-section">
-            <h2>Connected Players ({Object.keys(players).length})</h2>
+            <h2>Connected Controllers ({Object.keys(players).filter(id => players[id].role === 'controller').length})</h2>
             <div className="players-grid">
               {Object.values(players).length > 0 ? (
-                Object.values(players).map(player => (
+                Object.values(players).filter(p => p.role === 'controller').map(player => (
                   <div key={player.id} className="player-card">
                     <div className="player-avatar">
                       {player.name.charAt(0).toUpperCase()}

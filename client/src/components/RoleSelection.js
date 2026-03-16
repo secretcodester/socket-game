@@ -18,7 +18,7 @@ function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
     return (
       <div className="role-selection">
         <div className="role-content">
-          <h1>🎮 Join Game</h1>
+          <h1>🎮 Join as Controller</h1>
           <p className="subtitle">Enter your player name</p>
           
           <form onSubmit={(e) => { e.preventDefault(); handleRoleSelect(null); }} className="join-form">
@@ -30,7 +30,7 @@ function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
               maxLength={20}
               autoFocus
             />
-            <button type="submit">Join</button>
+            <button type="submit">Join Game</button>
           </form>
         </div>
       </div>

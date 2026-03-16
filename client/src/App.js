@@ -23,7 +23,11 @@ function App() {
 
     // Listen for game events
     newSocket.on('playerJoined', (updatedPlayers) => {
-      setPlayers(updatedPlayers);
+      // Filter out any host from players list
+      const filteredPlayers = Object.keys(updatedPlayers)
+        .filter(id => updatedPlayers[id].role !== 'host')
+        .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});
+      setPlayers(filteredPlayers);
     });
 
     newSocket.on('playerMoved', (data) => {
@@ -43,17 +47,27 @@ function App() {
 
     newSocket.on('gameReset', (state) => {
       setGameStarted(false);
-      setPlayers(state.players);
+      const filteredPlayers = Object.keys(state.players || {})
+        .filter(id => state.players[id].role !== 'host')
+        .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
+      setPlayers(filteredPlayers);
       setGameState(state);
     });
 
     newSocket.on('playerLeft', (updatedPlayers) => {
-      setPlayers(updatedPlayers);
+      const filteredPlayers = Object.keys(updatedPlayers)
+        .filter(id => updatedPlayers[id].role !== 'host')
+        .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});
+      setPlayers(filteredPlayers);
     });
 
     newSocket.on('gameState', (state) => {
       setGameState(state);
-      setPlayers(state.players);
+      // Filter out any host from players list
+      const filteredPlayers = Object.keys(state.players || {})
+        .filter(id => state.players[id].role !== 'host')
+        .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
+      setPlayers(filteredPlayers);
       setGameStarted(state.gameActive);
     });
 
@@ -62,6 +76,12 @@ function App() {
 
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
+    // If host is selected, skip name prompt and join directly
+    if (selectedRole === 'host') {
+      if (socket) {
+        socket.emit('join', { name: 'Host', role: 'host' });
+      }
+    }
   };
 
   const handleJoinGame = (name) => {
@@ -99,20 +119,20 @@ function App() {
     <div className="App">
       {!role ? (
         <RoleSelection onSelectRole={handleSelectRole} />
-      ) : !playerName ? (
-        <RoleSelection 
-          onSelectRole={handleSelectRole}
-          showNamePrompt={true}
-          onJoin={handleJoinGame}
-        />
       ) : role === 'host' ? (
         <HostScreen
           players={players}
           myId={myId}
           gameStarted={gameStarted}
-          playerName={playerName}
+          playerName="Host"
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
+        />
+      ) : !playerName ? (
+        <RoleSelection 
+          onSelectRole={handleSelectRole}
+          showNamePrompt={true}
+          onJoin={handleJoinGame}
         />
       ) : (
         <ControllerScreen
