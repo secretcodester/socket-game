@@ -1,6 +1,7 @@
 {
   "name": "socket-game-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "WebSocket-based couch game server",
   "main": "index.js",
   "scripts": {
