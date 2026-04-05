@@ -3,7 +3,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #0a0e27 0%, #1a0033 100%);
   overflow: hidden;
   font-family: inherit;
   touch-action: none;
@@ -12,13 +12,16 @@
 .controller-header {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: white;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  color: #00d4ff;
+  border-bottom: 2px solid #00d4ff;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .controller-header h1 {
   margin: 0 0 1rem 0;
   font-size: 1.8rem;
+  color: #b300ff;
+  text-shadow: 0 0 15px rgba(179, 0, 255, 0.4);
 }
 
 .player-info-bar {
@@ -30,12 +33,14 @@
 
 .player-name-badge,
 .player-score-badge {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 212, 255, 0.15);
+  border: 1px solid #00d4ff;
   padding: 0.5rem 1rem;
   border-radius: 2rem;
   font-size: 0.9rem;
   font-weight: bold;
-  color: white;
+  color: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
 }
 
 .controller-content {
@@ -57,17 +62,18 @@
 
 .joystick-section h2,
 .action-section h2 {
-  color: white;
+  color: #00ff41;
   margin: 0;
   font-size: 1.2rem;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
 }
 
 .joystick-container {
   position: relative;
   width: 200px;
   height: 200px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 3px solid white;
+  background: rgba(0, 212, 255, 0.05);
+  border: 3px solid #00d4ff;
   border-radius: 50%;
   cursor: grab;
   user-select: none;
@@ -75,19 +81,21 @@
   justify-content: center;
   align-items: center;
   active: grab;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
 }
 
 .joystick-container:active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 212, 255, 0.1);
   cursor: grabbing;
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
 }
 
 .joystick-background {
   position: absolute;
   width: 150px;
   height: 150px;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border: 2px dashed rgba(0, 212, 255, 0.3);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -96,8 +104,9 @@
   position: absolute;
   width: 60px;
   height: 60px;
-  background: white;
+  background: #00d4ff;
   border-radius: 50%;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   transition: transform 0.05s ease-out;

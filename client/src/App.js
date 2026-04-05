@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import GameSelection from './components/GameSelection';
 import RoleSelection from './components/RoleSelection';
 import HostScreen from './components/HostScreen';
 import ControllerScreen from './components/ControllerScreen';
@@ -9,6 +10,7 @@ const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001
 
 function App() {
   const [socket, setSocket] = useState(null);
+  const [gameSelected, setGameSelected] = useState(null); // 'game1', 'game2', etc.
   const [role, setRole] = useState(null); // 'host' or 'controller'
   const [playerName, setPlayerName] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
@@ -74,20 +76,26 @@ function App() {
     return () => newSocket.close();
   }, []);
 
+  const handleSelectGame = (gameId) => {
+    setGameSelected(gameId);
+  };
+
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
-    // If host is selected, skip name prompt and join directly
-    if (selectedRole === 'host') {
-      if (socket) {
-        socket.emit('join', { name: 'Host', role: 'host' });
-      }
+    // If host is selected, let them pick the game
+    // If controller is selected, they skip game selection
+    if (selectedRole === 'controller') {
+      // Controllers don't select game - that's the host's job
+      // Just join with a prompt for their name
     }
   };
 
   const handleJoinGame = (name) => {
     setPlayerName(name);
     if (socket) {
-      socket.emit('join', { name, role });
+      // For host: use selected game. For controller: game will be communicated by host
+      const gameToJoin = role === 'host' ? gameSelected : null;
+      socket.emit('join', { name, role, game: gameToJoin });
     }
   };
 
@@ -115,25 +123,43 @@ function App() {
     }
   };
 
-  return (
-    <div className="App">
-      {!role ? (
-        <RoleSelection onSelectRole={handleSelectRole} />
-      ) : role === 'host' ? (
-        <HostScreen
+  if (role === 'host' && !gameSelected) {
+    return <GameSelection onSelectGame={handleSelectGame} />;
+  }
+
+  if (role === 'host') {
+     <HostScreen
           players={players}
           myId={myId}
           gameStarted={gameStarted}
           playerName="Host"
+          gameSelected={gameSelected}
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
-        />
-      ) : !playerName ? (
-        <RoleSelection 
-          onSelectRole={handleSelectRole}
-          showNamePrompt={true}
-          onJoin={handleJoinGame}
-        />
+     />
+  }
+
+  return (
+    <div className="App">
+      { !playerName ? (
+        <div className="role-selection">
+          <div className="role-content">
+            <h1>🎮 Join Game</h1>
+            <p className="subtitle">Enter your player name</p>
+            
+            <form onSubmit={(e) => { e.preventDefault(); handleJoinGame(playerName); }} className="join-form">
+              <input
+                type="text"
+                placeholder="Enter your name..."
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={20}
+                autoFocus
+              />
+              <button type="submit" disabled={!playerName.trim()}>Join Game</button>
+            </form>
+          </div>
+        </div>
       ) : (
         <ControllerScreen
           myId={myId}

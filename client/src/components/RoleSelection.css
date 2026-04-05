@@ -4,28 +4,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0a0e27 0%, #1a0033 100%);
   padding: 1rem;
 }
 
 .role-content {
-  background: white;
+  background: rgba(10, 14, 39, 0.85);
+  backdrop-filter: blur(10px);
   padding: 3rem;
   border-radius: 1.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 2px solid #b300ff;
+  box-shadow: 0 0 30px rgba(179, 0, 255, 0.3), 0 20px 60px rgba(0, 0, 0, 0.5);
   text-align: center;
   max-width: 500px;
   width: 100%;
 }
 
 .role-content h1 {
-  color: #333;
+  color: #b300ff;
   margin-bottom: 0.5rem;
   font-size: 2.5rem;
+  text-shadow: 0 0 15px rgba(179, 0, 255, 0.5);
 }
 
 .subtitle {
-  color: #999;
+  color: #a0aec0;
   font-size: 1rem;
   margin-bottom: 2rem;
   font-weight: 500;
@@ -54,33 +57,41 @@
 }
 
 .host-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(179, 0, 255, 0.15) 100%);
+  color: #b300ff;
+  border: 2px solid #b300ff;
+  box-shadow: 0 0 15px rgba(179, 0, 255, 0.2);
 }
 
 .host-button:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 0 25px rgba(179, 0, 255, 0.6);
+  border-color: #00d4ff;
 }
 
 .controller-button {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+  color: #00ff41;
+  border: 2px solid #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
 }
 
 .controller-button:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+  box-shadow: 0 0 25px rgba(0, 255, 65, 0.6);
+  border-color: #00d4ff;
 }
 
 .role-title {
   font-size: 1.3rem;
   font-weight: bold;
+  text-shadow: 0 0 8px currentColor;
 }
 
 .role-description {
   font-size: 0.85rem;
-  opacity: 0.9;
+  opacity: 0.85;
+  color: #a0aec0;
 }
 
 .join-form {
@@ -92,10 +103,16 @@
 
 .join-form input {
   padding: 1rem;
-  border: 2px solid #e0e0e0;
+  background: rgba(0, 50, 80, 0.4);
+  border: 2px solid #00d4ff;
   border-radius: 0.5rem;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  color: #a0aec0;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.join-form input::placeholder {
+  color: rgba(160, 174, 192, 0.5);
 }
 
 .join-form input:focus {

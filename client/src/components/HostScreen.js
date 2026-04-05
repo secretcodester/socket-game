@@ -7,6 +7,7 @@ function HostScreen({
   myId,
   gameStarted,
   playerName,
+  gameSelected,
   onStartGame,
   onResetGame,
 }) {
@@ -27,6 +28,10 @@ function HostScreen({
       <div className="host-lobby">
         <div className="lobby-container">
           <h1>🖥️ Game Host Screen</h1>
+          <p className="game-title">
+            {gameSelected === 'game1' && '⚔️ Game 1'}
+            {gameSelected === 'game2' && '🎮 Game 2'}
+          </p>
           <p className="host-info">Waiting for players...</p>
 
           <div className="players-section">
