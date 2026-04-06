@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './HostGameDashboard.css';
 
-function HostGameDashboard({ players, onReset }) {
+export const HostGameDashboard = ({ players, onReset }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -117,5 +117,3 @@ function HostGameDashboard({ players, onReset }) {
     </div>
   );
 }
-
-export default HostGameDashboard;

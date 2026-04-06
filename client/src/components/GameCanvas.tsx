@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './GameCanvas.css';
 
-function GameCanvas({ players, myId, onReset, isHost }) {
+export const GameCanvas = ({ players, myId, onReset, isHost }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -99,5 +99,3 @@ function GameCanvas({ players, myId, onReset, isHost }) {
     </div>
   );
 }
-
-export default GameCanvas;

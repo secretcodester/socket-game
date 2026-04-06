@@ -1,24 +1,25 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import io from 'socket.io-client';
-import GameSelection from './components/GameSelection';
-import RoleSelection from './components/RoleSelection';
-import HostScreen from './components/HostScreen';
-import ControllerScreen from './components/ControllerScreen';
+import { GameSelection } from './components/GameSelection';
+import { RoleSelection } from './components/RoleSelection';
+import { HostScreen } from './components/HostScreen';
+import { ControllerScreen }from './components/ControllerScreen';
 import {
   PlayerData,
   GameState,
   ServerToClientEvents,
   ClientToServerEvents,
 } from './types';
+import { Role } from 'common/types/role';
 import './App.css';
 
 const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
 
-function App(): JSX.Element {
+export const App = (): React.ReactNode => {
   const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
   const [gameSelected, setGameSelected] = useState<string | null>(null); // 'game1', 'game2', etc.
-  const [role, setRole] = useState<'host' | 'controller' | null>(null); // 'host' or 'controller'
+  const [role, setRole] = useState<Role | undefined>(undefined); // 'host' or 'controller'
   const [playerName, setPlayerName] = useState<string>('');
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [players, setPlayers] = useState<Record<string, PlayerData>>({});
@@ -103,34 +104,46 @@ function App(): JSX.Element {
     setIsPlayerReady(true);
     if (socket) {
       // For host: use selected game. For controller: game will be communicated by host
-      const gameToJoin = role === 'host' ? gameSelected : null;
+      const gameToJoin = role === Role.Host ? gameSelected : null;
       socket.emit('join', { name, role, game: gameToJoin });
     }
   };
 
   const handleStartGame = () => {
-    if (socket) {
-      socket.emit('startGame');
+    if (!socket) {
+      console.error('Socket not initialized');
+      return;
     }
+
+    socket.emit('startGame');
     setGameStarted(true);
   };
 
   const handleResetGame = () => {
-    if (socket) {
-      socket.emit('resetGame');
+    if (!socket) {
+      console.error('Socket not initialized');
+      return;
     }
+    
+    socket.emit('resetGame');
   };
 
   const handlePlayerMove = (position: { x: number; y: number }) => {
-    if (socket) {
-      socket.emit('playerMove', position);
+    if (!socket) {
+      console.error('Socket not initialized');
+      return;
     }
+    
+    socket.emit('playerMove', position);
   };
 
   const handlePlayerAction = (action: any) => {
-    if (socket) {
-      socket.emit('playerAction', action);
+    if (!socket) {
+      console.error('Socket not initialized');
+      return;
     }
+
+    socket.emit('playerAction', action);
   };
 
   const handlePlayerJoinGame = (e: React.FormEvent) => { 
@@ -143,11 +156,11 @@ function App(): JSX.Element {
     return <RoleSelection onSelectRole={handleSelectRole} />;
   }
 
-  if (role === 'host' && !gameSelected) {
+  if (role === Role.Host && !gameSelected) {
     return <GameSelection onSelectGame={handleSelectGame} />;
   }
 
-  if (role === 'host') {
+  if (role === Role.Host) {
      return (
       <HostScreen
           players={players}

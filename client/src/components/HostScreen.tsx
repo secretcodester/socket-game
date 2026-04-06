@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import HostGameDashboard from './HostGameDashboard';
+import { HostGameDashboard } from './HostGameDashboard';
 import './HostScreen.css';
 
-function HostScreen({
+export const HostScreen = ({
   players,
   myId,
   gameStarted,
@@ -10,7 +10,7 @@ function HostScreen({
   gameSelected,
   onStartGame,
   onResetGame,
-}) {
+}) => {
   const [showLobby, setShowLobby] = useState(true);
 
   const handleStartGame = () => {
@@ -83,5 +83,3 @@ function HostScreen({
     />
   );
 }
-
-export default HostScreen;

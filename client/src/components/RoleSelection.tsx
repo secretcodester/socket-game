@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import './RoleSelection.css';
+import { Role } from '../common/types/role';
 
-function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
+type RoleSelectionProps = {
+  onSelectRole: (role?: Role) => void;
+  showNamePrompt: boolean;
+  onJoin: (playerName: string) => void;
+};
+
+export const RoleSelection = ({ onSelectRole, showNamePrompt, onJoin }: RoleSelectionProps) => {
   const [playerName, setPlayerName] = useState('');
 
-  const handleRoleSelect = (role) => {
+  const handleRoleSelect = (role: Role) => {
     if (showNamePrompt) {
       if (playerName.trim()) {
         onJoin(playerName);
@@ -21,7 +28,7 @@ function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
           <h1>🎮 Join as Controller</h1>
           <p className="subtitle">Enter your player name</p>
           
-          <form onSubmit={(e) => { e.preventDefault(); handleRoleSelect(null); }} className="join-form">
+          <form onSubmit={(e) => { e.preventDefault(); handleRoleSelect(); }} className="join-form">
             <input
               type="text"
               placeholder="Enter your name..."
@@ -68,5 +75,3 @@ function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
     </div>
   );
 }
-
-export default RoleSelection;

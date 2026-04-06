@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './GameLobby.css';
 
-function GameLobby({ onJoin }) {
+export const GameLobby = ({ onJoin }) => {
   const [name, setName] = useState('');
 
   const handleSubmit = (e) => {
@@ -36,5 +36,3 @@ function GameLobby({ onJoin }) {
     </div>
   );
 }
-
-export default GameLobby;

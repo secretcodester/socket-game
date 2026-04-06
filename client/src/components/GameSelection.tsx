@@ -1,7 +1,7 @@
 import React from 'react';
 import './GameSelection.css';
 
-function GameSelection({ onSelectGame }) {
+export const GameSelection = ({ onSelectGame }) => {
   const games = [
     {
       id: 'game1',
@@ -48,5 +48,3 @@ function GameSelection({ onSelectGame }) {
     </div>
   );
 }
-
-export default GameSelection;
