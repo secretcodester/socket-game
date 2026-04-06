@@ -14,6 +14,7 @@ function HostScreen({
   const [showLobby, setShowLobby] = useState(true);
 
   const handleStartGame = () => {
+    alert('Hi');
     setShowLobby(false);
     onStartGame();
   };

@@ -105,6 +105,7 @@ function App() {
     if (socket) {
       socket.emit('startGame');
     }
+    setGameStarted(true);
   };
 
   const handleResetGame = () => {
@@ -124,6 +125,12 @@ function App() {
       socket.emit('playerAction', action);
     }
   };
+
+  const handlePlayerJoinGame = (e) => { 
+    e.preventDefault(); 
+    handleJoinGame(playerName); 
+  };
+  
 
   if (!role) {
     return <RoleSelection onSelectRole={handleSelectRole} />;
@@ -155,7 +162,7 @@ function App() {
             <h1>🎮 Join Game</h1>
             <p className="subtitle">Enter your player name</p>
             
-            <form onSubmit={(e) => { e.preventDefault(); handleJoinGame(playerName); }} className="join-form">
+            <form onSubmit={handlePlayerJoinGame} className="join-form">
               <input
                 type="text"
                 placeholder="Enter your name..."
