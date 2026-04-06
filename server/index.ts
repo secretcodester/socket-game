@@ -1,11 +1,37 @@
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Type definitions
+interface PlayerData {
+  id: string;
+  name: string;
+  role: 'host' | 'controller';
+  score?: number;
+  position?: { x: number; y: number };
+}
+
+interface GameState {
+  host: string | null;
+  players: Record<string, PlayerData>;
+  gameActive: boolean;
+}
+
+interface JoinPayload {
+  name: string;
+  role: 'host' | 'controller';
+  game?: string | null;
+}
+
+interface PlayerMoveData {
+  playerId: string;
+  position: { x: number; y: number };
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -16,28 +42,28 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT: string | number = process.env.PORT || 3001;
 
 // Serve static files from client build
 app.use(express.static(path.join(__dirname, '../client/build')));
 
 // Game state
-const gameState = {
+const gameState: GameState = {
   host: null,
   players: {},
   gameActive: false
 };
 
 // Socket to player mapping
-const playerSockets = {};
-const socketRoles = {};
+const playerSockets: Record<string, PlayerData> = {};
+const socketRoles: Record<string, 'host' | 'controller'> = {};
 
 // Socket.io event handlers
-io.on('connection', (socket) => {
+io.on('connection', (socket: Socket) => {
   console.log(`Player connected: ${socket.id}`);
 
   // Player joins the game
-  socket.on('join', (playerData) => {
+  socket.on('join', (playerData: JoinPayload) => {
     const { name, role } = playerData;
     
     socketRoles[socket.id] = role;
@@ -63,18 +89,18 @@ io.on('connection', (socket) => {
   });
 
   // Handle player movement
-  socket.on('playerMove', (position) => {
+  socket.on('playerMove', (position: { x: number; y: number }) => {
     if (playerSockets[socket.id]) {
       playerSockets[socket.id].position = position;
       io.emit('playerMoved', {
         playerId: socket.id,
         position: position
-      });
+      } as PlayerMoveData);
     }
   });
 
   // Handle player actions
-  socket.on('playerAction', (action) => {
+  socket.on('playerAction', (action: any) => {
     if (playerSockets[socket.id]) {
       // Broadcast action to all players
       io.emit('playerAction', {

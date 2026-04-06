@@ -1,23 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Socket } from 'socket.io-client';
 import io from 'socket.io-client';
 import GameSelection from './components/GameSelection';
 import RoleSelection from './components/RoleSelection';
 import HostScreen from './components/HostScreen';
 import ControllerScreen from './components/ControllerScreen';
+import {
+  PlayerData,
+  GameState,
+  ServerToClientEvents,
+  ClientToServerEvents,
+} from './types';
 import './App.css';
 
 const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
 
-function App() {
-  const [socket, setSocket] = useState(null);
-  const [gameSelected, setGameSelected] = useState(null); // 'game1', 'game2', etc.
-  const [role, setRole] = useState(null); // 'host' or 'controller'
-  const [playerName, setPlayerName] = useState('');
-  const [gameStarted, setGameStarted] = useState(false);
-  const [players, setPlayers] = useState({});
-  const [myId, setMyId] = useState('');
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [gameState, setGameState] = useState(null);
+function App(): JSX.Element {
+  const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
+  const [gameSelected, setGameSelected] = useState<string | null>(null); // 'game1', 'game2', etc.
+  const [role, setRole] = useState<'host' | 'controller' | null>(null); // 'host' or 'controller'
+  const [playerName, setPlayerName] = useState<string>('');
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [players, setPlayers] = useState<Record<string, PlayerData>>({});
+  const [myId, setMyId] = useState<string>('');
+  const [isPlayerReady, setIsPlayerReady] = useState<boolean>(false);
+  const [gameState, setGameState] = useState<GameState | null>(null);
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -25,15 +32,15 @@ function App() {
     setMyId(newSocket.id);
 
     // Listen for game events
-    newSocket.on('playerJoined', (updatedPlayers) => {
+    newSocket.on('playerJoined', (updatedPlayers: Record<string, PlayerData>) => {
       // Filter out any host from players list
       const filteredPlayers = Object.keys(updatedPlayers)
         .filter(id => updatedPlayers[id].role !== 'host')
-        .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});
+        .reduce((acc: Record<string, PlayerData>, id: string) => { acc[id] = updatedPlayers[id]; return acc; }, {});
       setPlayers(filteredPlayers);
     });
 
-    newSocket.on('playerMoved', (data) => {
+    newSocket.on('playerMoved', (data: { playerId: string; position: { x: number; y: number } }) => {
       setPlayers(prev => ({
         ...prev,
         [data.playerId]: {
@@ -43,33 +50,33 @@ function App() {
       }));
     });
 
-    newSocket.on('gameStarted', (state) => {
+    newSocket.on('gameStarted', (state: GameState) => {
       setGameStarted(true);
       setGameState(state);
     });
 
-    newSocket.on('gameReset', (state) => {
+    newSocket.on('gameReset', (state: GameState) => {
       setGameStarted(false);
       const filteredPlayers = Object.keys(state.players || {})
         .filter(id => state.players[id].role !== 'host')
-        .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
+        .reduce((acc: Record<string, PlayerData>, id: string) => { acc[id] = state.players[id]; return acc; }, {});
       setPlayers(filteredPlayers);
       setGameState(state);
     });
 
-    newSocket.on('playerLeft', (updatedPlayers) => {
+    newSocket.on('playerLeft', (updatedPlayers: Record<string, PlayerData>) => {
       const filteredPlayers = Object.keys(updatedPlayers)
         .filter(id => updatedPlayers[id].role !== 'host')
-        .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});
+        .reduce((acc: Record<string, PlayerData>, id: string) => { acc[id] = updatedPlayers[id]; return acc; }, {});
       setPlayers(filteredPlayers);
     });
 
-    newSocket.on('gameState', (state) => {
+    newSocket.on('gameState', (state: GameState) => {
       setGameState(state);
       // Filter out any host from players list
       const filteredPlayers = Object.keys(state.players || {})
         .filter(id => state.players[id].role !== 'host')
-        .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
+        .reduce((acc: Record<string, PlayerData>, id: string) => { acc[id] = state.players[id]; return acc; }, {});
       setPlayers(filteredPlayers);
       setGameStarted(state.gameActive);
     });
@@ -77,11 +84,11 @@ function App() {
     return () => newSocket.close();
   }, []);
 
-  const handleSelectGame = (gameId) => {
+  const handleSelectGame = (gameId: string) => {
     setGameSelected(gameId);
   };
 
-  const handleSelectRole = (selectedRole) => {
+  const handleSelectRole = (selectedRole: 'host' | 'controller') => {
     setRole(selectedRole);
     // If host is selected, let them pick the game
     // If controller is selected, they skip game selection
@@ -91,7 +98,7 @@ function App() {
     }
   };
 
-  const handleJoinGame = (name) => {
+  const handleJoinGame = (name: string) => {
     setPlayerName(name);
     setIsPlayerReady(true);
     if (socket) {
@@ -114,19 +121,19 @@ function App() {
     }
   };
 
-  const handlePlayerMove = (position) => {
+  const handlePlayerMove = (position: { x: number; y: number }) => {
     if (socket) {
       socket.emit('playerMove', position);
     }
   };
 
-  const handlePlayerAction = (action) => {
+  const handlePlayerAction = (action: any) => {
     if (socket) {
       socket.emit('playerAction', action);
     }
   };
 
-  const handlePlayerJoinGame = (e) => { 
+  const handlePlayerJoinGame = (e: React.FormEvent) => { 
     e.preventDefault(); 
     handleJoinGame(playerName); 
   };

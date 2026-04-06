@@ -6,15 +6,18 @@ A real-time multiplayer couch game built with Node.js, Socket.IO, and React. Per
 
 ```
 socket-game/
-├── server/           # Node.js + Socket.IO backend
-│   ├── index.js     # Main server file
+├── server/           # Node.js + Socket.IO backend (TypeScript)
+│   ├── index.ts     # Main server file
+│   ├── tsconfig.json
 │   └── package.json
-├── client/           # React frontend
+├── client/           # React frontend (TypeScript)
 │   ├── public/
 │   ├── src/
 │   │   ├── components/   # Game components
-│   │   ├── App.js
-│   │   └── index.js
+│   │   ├── App.tsx
+│   │   ├── index.tsx
+│   │   └── types/
+│   ├── tsconfig.json
 │   └── package.json
 └── README.md
 ```
@@ -27,6 +30,7 @@ socket-game/
 - 🏆 Score tracking
 - 🎨 Beautiful gradient UI with canvas-based game rendering
 - 🔄 Game state synchronization across all players
+- 🛡️ TypeScript for type safety and better development experience
 
 ## Getting Started
 
@@ -42,7 +46,13 @@ socket-game/
 ```bash
 cd server
 npm install
-npm start  # or npm run dev for development with auto-reload
+npm run build  # Compile TypeScript to JavaScript
+npm start      # Run the compiled server
+```
+
+For development with hot-reload:
+```bash
+npm run dev    # Runs with ts-node and nodemon
 ```
 
 The server will run on `http://localhost:3001`
@@ -64,14 +74,13 @@ For development with hot-reload:
 **Server:**
 ```bash
 cd server
-npm install nodemon --save-dev
-npm run dev
+npm run dev  # TypeScript with auto-reload
 ```
 
 **Client:**
 ```bash
 cd client
-npm start
+npm start  # React development server with TypeScript
 ```
 
 ## How to Play
