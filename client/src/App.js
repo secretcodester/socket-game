@@ -16,6 +16,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [players, setPlayers] = useState({});
   const [myId, setMyId] = useState('');
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [gameState, setGameState] = useState(null);
 
   useEffect(() => {
@@ -92,6 +93,7 @@ function App() {
 
   const handleJoinGame = (name) => {
     setPlayerName(name);
+    setIsPlayerReady(true);
     if (socket) {
       // For host: use selected game. For controller: game will be communicated by host
       const gameToJoin = role === 'host' ? gameSelected : null;
@@ -123,12 +125,17 @@ function App() {
     }
   };
 
+  if (!role) {
+    return <RoleSelection onSelectRole={handleSelectRole} />;
+  }
+
   if (role === 'host' && !gameSelected) {
     return <GameSelection onSelectGame={handleSelectGame} />;
   }
 
   if (role === 'host') {
-     <HostScreen
+     return (
+      <HostScreen
           players={players}
           myId={myId}
           gameStarted={gameStarted}
@@ -136,12 +143,13 @@ function App() {
           gameSelected={gameSelected}
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
-     />
+      />
+     );
   }
 
   return (
     <div className="App">
-      { !playerName ? (
+      { !isPlayerReady ? (
         <div className="role-selection">
           <div className="role-content">
             <h1>🎮 Join Game</h1>
