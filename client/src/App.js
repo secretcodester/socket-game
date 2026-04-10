@@ -17,7 +17,6 @@ export const App = () => {
   const [players, setPlayers] = useState({});
   const [myId, setMyId] = useState('');
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [gameState, setGameState] = useState(null);
   const [roomCode, setRoomCode] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [gameItems, setGameItems] = useState([]);
@@ -46,7 +45,6 @@ export const App = () => {
 
     newSocket.on('gameStarted', (state) => {
       setGameStarted(true);
-      setGameState(state);
     });
 
     newSocket.on('gameReset', (state) => {
@@ -56,7 +54,6 @@ export const App = () => {
         .filter(id => state.players[id].role !== 'host')
         .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
       setPlayers(filteredPlayers);
-      setGameState(state);
     });
 
     newSocket.on('playerLeave', (updatedPlayers) => {
@@ -67,7 +64,6 @@ export const App = () => {
     });
 
     newSocket.on('gameState', (state) => {
-      setGameState(state);
       // Filter out any host from players list
       const filteredPlayers = Object.keys(state.players || {})
         .filter(id => state.players[id].role !== 'host')
