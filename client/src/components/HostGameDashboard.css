@@ -12,16 +12,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #b300ff;
-  border-bottom: 2px solid #b300ff;
-  text-shadow: 0 0 10px rgba(179, 0, 255, 0.4);
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  text-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
 }
 
 .dashboard-header h1 {
   margin: 0;
   font-size: 2rem;
-  color: #b300ff;
-  text-shadow: 0 0 15px rgba(179, 0, 255, 0.5);
+  color: #007bff;
+  text-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
 }
 
 .header-info {

@@ -37,14 +37,15 @@ function generateRoomCode() {
   return code;
 }
 
+const MAX_ITEMS = 5; // Max items per room
+
 // Function to spawn a new item in a room
 function spawnItem(roomCode) {
   if (!gameItems[roomCode]) {
     gameItems[roomCode] = [];
   }
   
-  // Spawn up to 3 items per room
-  if (gameItems[roomCode].length < 3) {
+  if (gameItems[roomCode].length < MAX_ITEMS) {
     const item = {
       id: Date.now() + Math.random(),
       x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
@@ -192,7 +193,7 @@ io.on('connection', (socket) => {
     gameItems[roomCode] = [];
     
     // Spawn initial items
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < MAX_ITEMS; i++) {
       setTimeout(() => spawnItem(roomCode), i * 500);
     }
     
