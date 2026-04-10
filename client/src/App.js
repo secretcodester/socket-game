@@ -210,4 +210,6 @@ export const App = () => {
       />
     );
   }
+
+  return <div>Hmm. Something went wrong.</div>;
 }
