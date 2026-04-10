@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ControllerScreen.css';
 
-export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }) => {
+const CONTAINER_RADIUS = 80;
+
+export const ControllerScreen = ({ myId, playerName, onMove, onAction, players, speedBoostActive }) => {
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const joystickRef = useRef(null);
   const containerRef = useRef(null);
 
-  const CONTAINER_RADIUS = 80;
 
   const handleJoystickStart = (e) => {
     setJoystickActive(true);
@@ -78,7 +79,9 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }
   }, [joystickActive]);
 
   const handleActionButton = () => {
-    onAction('controller_action');
+    if (!speedBoostActive) {
+      onAction('speedBoost');
+    }
   };
 
   // Find current player
@@ -120,12 +123,14 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }
         <div className="action-section">
           <h2>Actions</h2>
           <button 
-            className="action-button"
+            className={`action-button ${speedBoostActive ? 'active' : ''}`}
             onMouseDown={handleActionButton}
             onTouchStart={handleActionButton}
+            disabled={speedBoostActive}
           >
-            Action
+            🚀
           </button>
+          {speedBoostActive && <p className="action-status">Speed boost active!</p>}
         </div>
       </div>
 

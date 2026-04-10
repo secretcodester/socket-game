@@ -148,6 +148,29 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+.action-button.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  animation: pulse 0.5s infinite alternate;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+}
+
+.action-status {
+  color: #00d4ff;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4); }
+  100% { box-shadow: 0 4px 20px rgba(255, 107, 53, 0.8); }
+}
+
 .action-button:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);

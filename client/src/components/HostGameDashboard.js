@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './HostGameDashboard.css';
 
-export const HostGameDashboard = ({ players, roomCode, gameItems, onReset }) => {
+export const HostGameDashboard = ({ players, roomCode, gameItems, speedBoosts, onReset }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -33,20 +33,45 @@ export const HostGameDashboard = ({ players, roomCode, gameItems, onReset }) => 
       }
 
       // Draw players (as observers, host doesn't control)
-      Object.values(players).forEach((player, index) => {
+      Object.values(players).forEach((player) => {
         const x = 400 + (player.position?.x || 0);
         const y = 300 + (player.position?.y || 0);
+        const isSpeedBoosting = speedBoosts[player.id]?.active;
 
         // Draw player circle
-        ctx.fillStyle = '#667eea';
+        ctx.fillStyle = isSpeedBoosting ? '#ff6b35' : '#667eea'; // Orange for speed boost
         ctx.beginPath();
-        ctx.arc(x, y, 25, 0, Math.PI * 2);
+        ctx.arc(x, y, isSpeedBoosting ? 30 : 25, 0, Math.PI * 2); // Slightly larger when boosting
         ctx.fill();
 
         // Draw border
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isSpeedBoosting ? '#fff' : '#fff';
+        ctx.lineWidth = isSpeedBoosting ? 3 : 2;
         ctx.stroke();
+
+        // Draw speed boost effect
+        if (isSpeedBoosting) {
+          ctx.strokeStyle = '#ff6b35';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 35, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          // Draw speed lines
+          ctx.strokeStyle = '#ff6b35';
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 8; i++) {
+            const angle = (i * Math.PI) / 4;
+            const startX = x + Math.cos(angle) * 30;
+            const startY = y + Math.sin(angle) * 30;
+            const endX = x + Math.cos(angle) * 40;
+            const endY = y + Math.sin(angle) * 40;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+          }
+        }
 
         // Draw name
         ctx.fillStyle = '#fff';

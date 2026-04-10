@@ -8,6 +8,7 @@ export const HostScreen = ({
   gameSelected,
   roomCode,
   gameItems,
+  speedBoosts,
   onStartGame,
   onResetGame,
 }) => {
@@ -80,6 +81,7 @@ export const HostScreen = ({
       players={players}
       roomCode={roomCode}
       gameItems={gameItems}
+      speedBoosts={speedBoosts}
       onReset={handleResetGame}
     />
   );

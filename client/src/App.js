@@ -20,6 +20,7 @@ export const App = () => {
   const [roomCode, setRoomCode] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [gameItems, setGameItems] = useState([]);
+  const [speedBoosts, setSpeedBoosts] = useState({}); // playerId -> {active: boolean, endTime: number}
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -59,6 +60,7 @@ export const App = () => {
     newSocket.on('gameReset', (state) => {
       setGameStarted(false);
       setGameItems([]); // Clear items
+      setSpeedBoosts({}); // Clear speed boosts
       const filteredPlayers = Object.keys(state.players || {})
         .filter(id => state.players[id].role !== 'host')
         .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
@@ -103,6 +105,28 @@ export const App = () => {
       }));
     });
 
+    newSocket.on('playerAction', (data) => {
+      console.log('Received playerAction:', data);
+      if (data.action === 'speedBoost') {
+        setSpeedBoosts(prev => ({
+          ...prev,
+          [data.playerId]: {
+            active: true,
+            endTime: Date.now() + data.duration
+          }
+        }));
+      } else if (data.action === 'speedBoostEnd') {
+        console.log('Speed boost ended for:', data.playerId);
+        setSpeedBoosts(prev => ({
+          ...prev,
+          [data.playerId]: {
+            ...prev[data.playerId],
+            active: false
+          }
+        }));
+      }
+    });
+
     return () => newSocket.close();
   }, []);
 
@@ -138,21 +162,21 @@ export const App = () => {
   };
 
   const handleResetGame = () => {
-    if (socket) {
+    if (!socket) {
       socket.emit('resetGame');
     }
   };
 
   const handlePlayerMove = (position) => {
-    if (socket) {
-      socket.emit('playerMove', position);
-    }
+    if (!socket) return;
+
+    socket.emit('playerMove', position);
   };
 
   const handlePlayerAction = (action) => {
-    if (socket) {
-      socket.emit('playerAction', action);
-    }
+    if (!socket) return;
+      
+    socket.emit('playerAction', action);
   };
   
 
@@ -181,6 +205,7 @@ export const App = () => {
           gameSelected={gameSelected}
           roomCode={roomCode}
           gameItems={gameItems}
+          speedBoosts={speedBoosts}
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
       />
@@ -227,6 +252,7 @@ export const App = () => {
         onMove={handlePlayerMove}
         onAction={handlePlayerAction}
         players={players}
+        speedBoostActive={speedBoosts[myId]?.active || false}
       />
     );
   }

@@ -64,6 +64,19 @@ function checkItemCollection(roomCode) {
   
   Object.keys(rooms[roomCode].players).forEach(playerId => {
     const player = rooms[roomCode].players[playerId];
+    
+    // Apply speed boost effect
+    const speedMultiplier = player.speedBoostActive ? 2 : 1;
+    
+    if (player.velocity.x !== 0 || player.velocity.y !== 0) {
+      player.position.x += player.velocity.x * speedMultiplier;
+      player.position.y += player.velocity.y * speedMultiplier;
+      
+      // Keep players on screen (canvas is 1000x650, centered at 400,300)
+      player.position.x = Math.max(-375, Math.min(575, player.position.x));
+      player.position.y = Math.max(-275, Math.min(275, player.position.y));
+    }
+    
     gameItems[roomCode].forEach((item, index) => {
       const distance = Math.sqrt(
         Math.pow(player.position.x - item.x, 2) + 
@@ -99,9 +112,21 @@ setInterval(() => {
     
     Object.keys(room.players).forEach(playerId => {
       const player = room.players[playerId];
+      
+      // Check if speed boost has expired
+      if (player.speedBoostActive && Date.now() > player.speedBoostEndTime) {
+        player.speedBoostActive = false;
+        io.to(roomCode).emit('playerAction', {
+          playerId,
+          action: 'speedBoostEnd'
+        });
+      }
+      
       if (player.velocity.x !== 0 || player.velocity.y !== 0) {
-        player.position.x += player.velocity.x;
-        player.position.y += player.velocity.y;
+        // Apply speed boost effect
+        const speedMultiplier = player.speedBoostActive ? 2 : 1;
+        player.position.x += player.velocity.x * speedMultiplier;
+        player.position.y += player.velocity.y * speedMultiplier;
         
         player.position.x = Math.max(-375, Math.min(575, player.position.x));
         player.position.y = Math.max(-275, Math.min(275, player.position.y));
@@ -150,7 +175,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } };
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 };
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
@@ -172,13 +197,33 @@ io.on('connection', (socket) => {
   socket.on('playerAction', (action) => {
     const roomCode = socketRooms[socket.id];
 
-    if (!roomCode || !rooms[roomCode] || !rooms[roomCode].players[socket.id]) return
+    if (!roomCode || !rooms[roomCode] || !rooms[roomCode].players[socket.id]) return;
 
-    // Broadcast action to all players in the room
-    io.to(roomCode).emit('playerAction', {
-      playerId: socket.id,
-      action: action
-    });
+    const player = rooms[roomCode].players[socket.id];
+    
+    if (action === 'speedBoost' && !player.speedBoostActive) {
+      // Activate speed boost for 5 seconds
+      player.speedBoostActive = true;
+      player.speedBoostEndTime = Date.now() + 5000;
+      
+      // Broadcast speed boost activation
+      io.to(roomCode).emit('playerAction', {
+        playerId: socket.id,
+        action: 'speedBoost',
+        duration: 5000
+      });
+      
+      // Deactivate after duration
+      setTimeout(() => {
+        if (rooms[roomCode] && rooms[roomCode].players[socket.id]) {
+          rooms[roomCode].players[socket.id].speedBoostActive = false;
+          io.to(roomCode).emit('playerAction', {
+            playerId: socket.id,
+            action: 'speedBoostEnd'
+          });
+        }
+      }, 5000);
+    }
   });
 
   // Start game (only host can do this)
@@ -212,6 +257,8 @@ io.on('connection', (socket) => {
       rooms[roomCode].players[key].score = 0;
       rooms[roomCode].players[key].position = { x: 0, y: 0 };
       rooms[roomCode].players[key].velocity = { x: 0, y: 0 };
+      rooms[roomCode].players[key].speedBoostActive = false;
+      rooms[roomCode].players[key].speedBoostEndTime = 0;
     });
     rooms[roomCode].gameActive = false;
     
