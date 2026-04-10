@@ -35,14 +35,12 @@ export const App = () => {
       setPlayers(filteredPlayers);
     });
 
-    newSocket.on('playerMoved', (data) => {
-      setPlayers(prev => ({
-        ...prev,
-        [data.playerId]: {
-          ...prev[data.playerId],
-          position: data.position
-        }
-      }));
+    newSocket.on('playerMoved', (updatedPlayers) => {
+      // Filter out any host from players list
+      const filteredPlayers = Object.keys(updatedPlayers)
+        .filter(id => updatedPlayers[id].role !== 'host')
+        .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});
+      setPlayers(filteredPlayers);
     });
 
     newSocket.on('gameStarted', (state) => {

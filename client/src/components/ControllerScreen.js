@@ -7,7 +7,6 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }
   const joystickRef = useRef(null);
   const containerRef = useRef(null);
 
-  const JOYSTICK_RADIUS = 50;
   const CONTAINER_RADIUS = 80;
 
   const handleJoystickStart = (e) => {
@@ -51,14 +50,18 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }
 
     setJoystickPos({ x, y });
 
-    // Normalize and send to server
+    // Normalize joystick position
     const normalizedX = x / CONTAINER_RADIUS;
     const normalizedY = y / CONTAINER_RADIUS;
+    
+    // Send velocity to server
+    const velocityX = normalizedX * 5; // Adjust speed multiplier
+    const velocityY = normalizedY * 5;
     onMove({
-      x: normalizedX * 100,
-      y: normalizedY * 100
+      x: velocityX,
+      y: velocityY
     });
-  };
+  }; 
 
   useEffect(() => {
     window.addEventListener('mousemove', handleJoystickMove);
@@ -107,7 +110,7 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }
               ref={joystickRef}
               className={`joystick-handle ${joystickActive ? 'active' : ''}`}
               style={{
-                transform: `translate(calc(-50% + ${joystickPos.x}px), calc(-50% + ${joystickPos.y}px))`
+                transform: `translate(${joystickPos.x}px, ${joystickPos.y}px)`
               }}
             />
           </div>

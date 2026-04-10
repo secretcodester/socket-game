@@ -34,6 +34,32 @@ function generateRoomCode() {
   return code;
 }
 
+// Game loop to update player positions
+setInterval(() => {
+  Object.keys(rooms).forEach(roomCode => {
+    const room = rooms[roomCode];
+    let positionChanged = false;
+    
+    Object.keys(room.players).forEach(playerId => {
+      const player = room.players[playerId];
+      if (player.velocity.x !== 0 || player.velocity.y !== 0) {
+        player.position.x += player.velocity.x;
+        player.position.y += player.velocity.y;
+        
+        // Keep players on screen (canvas is 1000x650, centered at 400,300)
+        player.position.x = Math.max(-350, Math.min(350, player.position.x));
+        player.position.y = Math.max(-250, Math.min(250, player.position.y));
+        
+        positionChanged = true;
+      }
+    });
+    
+    if (positionChanged) {
+      io.to(roomCode).emit('playerMoved', room.players);
+    }
+  });
+}, 16); // ~60fps
+
 // Socket.io event handlers
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
@@ -51,7 +77,7 @@ io.on('connection', (socket) => {
         players: {},
         gameActive: false
       };
-      
+
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       socket.emit('roomCreated', { roomCode });
@@ -65,7 +91,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } };
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
@@ -75,16 +101,12 @@ io.on('connection', (socket) => {
   });
 
   // Handle player movement
-  socket.on('playerMove', (position) => {
+  socket.on('playerMove', (velocity) => {
     const roomCode = socketRooms[socket.id];
     
     if (!roomCode || !rooms[roomCode] || !rooms[roomCode].players[socket.id]) return;
     
-    rooms[roomCode].players[socket.id].position = position;
-    io.to(roomCode).emit('playerMoved', {
-      playerId: socket.id,
-      position: position
-    });
+    rooms[roomCode].players[socket.id].velocity = velocity;
   });
 
   // Handle player actions
@@ -121,6 +143,7 @@ io.on('connection', (socket) => {
     Object.keys(rooms[roomCode].players).forEach(key => {
       rooms[roomCode].players[key].score = 0;
       rooms[roomCode].players[key].position = { x: 0, y: 0 };
+      rooms[roomCode].players[key].velocity = { x: 0, y: 0 };
     });
     rooms[roomCode].gameActive = false;
     io.to(roomCode).emit('gameReset', rooms[roomCode]);

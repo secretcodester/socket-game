@@ -34,8 +34,8 @@ export const HostGameDashboard = ({ players, roomCode, onReset }) => {
 
       // Draw players (as observers, host doesn't control)
       Object.values(players).forEach((player, index) => {
-        const x = (player.position?.x || 0) + 200 + index * 60;
-        const y = (player.position?.y || 0) + 200;
+        const x = 400 + (player.position?.x || 0);
+        const y = 300 + (player.position?.y || 0);
 
         // Draw player circle
         ctx.fillStyle = '#667eea';
