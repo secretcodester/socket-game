@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ControllerScreen.css';
 
-function ControllerScreen({ myId, playerName, onMove, onAction, players }) {
+export const ControllerScreen = ({ myId, playerName, onMove, onAction, players }) => {
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const joystickRef = useRef(null);
@@ -135,5 +135,3 @@ function ControllerScreen({ myId, playerName, onMove, onAction, players }) {
     </div>
   );
 }
-
-export default ControllerScreen;

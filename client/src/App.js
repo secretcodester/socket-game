@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import GameSelection from './components/GameSelection';
-import RoleSelection from './components/RoleSelection';
-import HostScreen from './components/HostScreen';
-import ControllerScreen from './components/ControllerScreen';
+import { GameSelection } from './components/GameSelection';
+import { RoleSelection } from './components/RoleSelection';
+import { HostScreen } from './components/HostScreen';
+import { ControllerScreen } from './components/ControllerScreen';
 import './App.css';
 
 const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
 
-function App() {
+export const App = () => {
   const [socket, setSocket] = useState(null);
   const [gameSelected, setGameSelected] = useState(null); // 'game1', 'game2', etc.
   const [role, setRole] = useState(null); // 'host' or 'controller'
@@ -18,6 +18,8 @@ function App() {
   const [myId, setMyId] = useState('');
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [gameState, setGameState] = useState(null);
+  const [roomCode, setRoomCode] = useState('');
+  const [roomCodeInput, setRoomCodeInput] = useState('');
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -74,6 +76,14 @@ function App() {
       setGameStarted(state.gameActive);
     });
 
+    newSocket.on('roomCreated', (data) => {
+      setRoomCode(data.roomCode);
+    });
+
+    newSocket.on('error', (error) => {
+      alert(error.message);
+    });
+
     return () => newSocket.close();
   }, []);
 
@@ -84,20 +94,20 @@ function App() {
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
     // If host is selected, let them pick the game
-    // If controller is selected, they skip game selection
-    if (selectedRole === 'controller') {
-      // Controllers don't select game - that's the host's job
-      // Just join with a prompt for their name
-    }
+    // If controller is selected, ask for room code
   };
 
-  const handleJoinGame = (name) => {
+  const handleJoinGame = (name, providedRoomCode) => {
     setPlayerName(name);
     setIsPlayerReady(true);
     if (socket) {
       // For host: use selected game. For controller: game will be communicated by host
       const gameToJoin = role === 'host' ? gameSelected : null;
-      socket.emit('join', { name, role, game: gameToJoin });
+      const joinData = { name, role, game: gameToJoin };
+      if (role === 'controller') {
+        joinData.roomCode = providedRoomCode;
+      }
+      socket.emit('join', joinData);
     }
   };
 
@@ -125,11 +135,6 @@ function App() {
       socket.emit('playerAction', action);
     }
   };
-
-  const handlePlayerJoinGame = (e) => { 
-    e.preventDefault(); 
-    handleJoinGame(playerName); 
-  };
   
 
   if (!role) {
@@ -140,6 +145,13 @@ function App() {
     return <GameSelection onSelectGame={handleSelectGame} />;
   }
 
+  if (role === 'host' && !isPlayerReady) {
+    // Host joins immediately after game selection
+    handleJoinGame('Host');
+    setIsPlayerReady(true);
+    return <div>Loading...</div>; // or a loading screen
+  }
+
   if (role === 'host') {
      return (
       <HostScreen
@@ -148,44 +160,54 @@ function App() {
           gameStarted={gameStarted}
           playerName="Host"
           gameSelected={gameSelected}
+          roomCode={roomCode}
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
       />
      );
   }
 
-  return (
-    <div className="App">
-      { !isPlayerReady ? (
-        <div className="role-selection">
-          <div className="role-content">
-            <h1>🎮 Join Game</h1>
-            <p className="subtitle">Enter your player name</p>
-            
-            <form onSubmit={handlePlayerJoinGame} className="join-form">
-              <input
-                type="text"
-                placeholder="Enter your name..."
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={20}
-                autoFocus
-              />
-              <button type="submit" disabled={!playerName.trim()}>Join Game</button>
-            </form>
-          </div>
+  if (role === 'controller' && !isPlayerReady) {
+    return (
+      <div className="role-selection">
+        <div className="role-content">
+          <h1>🎮 Join Game</h1>
+          <p className="subtitle">Enter room code and your name</p>
+          
+          <form onSubmit={(e) => { e.preventDefault(); handleJoinGame(playerName, roomCodeInput); }} className="join-form">
+            <input
+              type="text"
+              placeholder="Room code (6 digits)..."
+              value={roomCodeInput}
+              onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
+              maxLength={6}
+              autoFocus
+              required
+            />
+            <input
+              type="text"
+              placeholder="Your name..."
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              maxLength={20}
+              required
+            />
+            <button type="submit" disabled={roomCodeInput.length !== 6 || !playerName.trim()}>Join Game</button>
+          </form>
         </div>
-      ) : (
-        <ControllerScreen
-          myId={myId}
-          playerName={playerName}
-          onMove={handlePlayerMove}
-          onAction={handlePlayerAction}
-          players={players}
-        />
-      )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
-export default App;
+  if (role === 'controller') {
+    return (
+      <ControllerScreen
+        myId={myId}
+        playerName={playerName}
+        onMove={handlePlayerMove}
+        onAction={handlePlayerAction}
+        players={players}
+      />
+    );
+  }
+}

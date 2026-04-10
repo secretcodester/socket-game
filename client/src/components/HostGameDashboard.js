@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './HostGameDashboard.css';
 
-function HostGameDashboard({ players, onReset }) {
+export const HostGameDashboard = ({ players, roomCode, onReset }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -76,7 +76,10 @@ function HostGameDashboard({ players, onReset }) {
     <div className="host-dashboard">
       <div className="dashboard-header">
         <h1>🎮 Game in Progress</h1>
-        <span className="player-count">Active Players: {Object.keys(players).length}</span>
+        <div className="header-info">
+          <span className="room-code">Room: {roomCode}</span>
+          <span className="player-count">Active Players: {Object.keys(players).length}</span>
+        </div>
       </div>
 
       <div className="dashboard-content">
@@ -117,5 +120,3 @@ function HostGameDashboard({ players, onReset }) {
     </div>
   );
 }
-
-export default HostGameDashboard;

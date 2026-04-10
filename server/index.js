@@ -21,16 +21,18 @@ const PORT = process.env.PORT || 3001;
 // Serve static files from client build
 app.use(express.static(path.join(__dirname, '../client/build')));
 
-// Game state
-const gameState = {
-  host: null,
-  players: {},
-  gameActive: false
-};
+// Rooms storage
+const rooms = {};
+const socketRooms = {};
 
-// Socket to player mapping
-const playerSockets = {};
-const socketRoles = {};
+// Function to generate unique 6-digit room code
+function generateRoomCode() {
+  let code;
+  do {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+  } while (rooms[code]);
+  return code;
+}
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
@@ -38,35 +40,42 @@ io.on('connection', (socket) => {
 
   // Player joins the game
   socket.on('join', (playerData) => {
-    const { name, role } = playerData;
+    const { name, role, roomCode: providedRoomCode } = playerData;
     
-    socketRoles[socket.id] = role;
-
     if (role === 'host') {
-      // Set as game host (don't add to players list)
-      if (gameState.host) {
-        // Already have a host, reject
-        socket.emit('error', { message: 'A host already exists' });
+      // Create new room for host
+      const roomCode = generateRoomCode();
+      rooms[roomCode] = {
+        host: socket.id,
+        players: {},
+        gameActive: false
+      };
+      socketRooms[socket.id] = roomCode;
+      socket.join(roomCode);
+      socket.emit('roomCreated', { roomCode });
+      console.log(`Host created room ${roomCode}: ${name}`);
+    } else {
+      // Join existing room as controller
+      const roomCode = providedRoomCode;
+      if (!rooms[roomCode]) {
+        socket.emit('error', { message: 'Room not found' });
         return;
       }
-      gameState.host = socket.id;
-      console.log(`Host joined: ${name}`);
-    } else {
-      // Add as controller
-      playerSockets[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
-      console.log(`Controller joined: ${name}`);
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
+      socketRooms[socket.id] = roomCode;
+      socket.join(roomCode);
+      io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
+      socket.emit('gameState', rooms[roomCode]);
+      console.log(`Controller joined room ${roomCode}: ${name}`);
     }
-
-    gameState.players = playerSockets;
-    io.emit('playerJoined', gameState.players);
-    socket.emit('gameState', gameState);
   });
 
   // Handle player movement
   socket.on('playerMove', (position) => {
-    if (playerSockets[socket.id]) {
-      playerSockets[socket.id].position = position;
-      io.emit('playerMoved', {
+    const roomCode = socketRooms[socket.id];
+    if (roomCode && rooms[roomCode] && rooms[roomCode].players[socket.id]) {
+      rooms[roomCode].players[socket.id].position = position;
+      io.to(roomCode).emit('playerMoved', {
         playerId: socket.id,
         position: position
       });
@@ -75,9 +84,10 @@ io.on('connection', (socket) => {
 
   // Handle player actions
   socket.on('playerAction', (action) => {
-    if (playerSockets[socket.id]) {
-      // Broadcast action to all players
-      io.emit('playerAction', {
+    const roomCode = socketRooms[socket.id];
+    if (roomCode && rooms[roomCode] && rooms[roomCode].players[socket.id]) {
+      // Broadcast action to all players in the room
+      io.to(roomCode).emit('playerAction', {
         playerId: socket.id,
         action: action
       });
@@ -86,45 +96,44 @@ io.on('connection', (socket) => {
 
   // Start game (only host can do this)
   socket.on('startGame', () => {
-    if (socket.id === gameState.host) {
-      gameState.gameActive = true;
-      io.emit('gameStarted', gameState);
-      console.log('Game started by host');
+    const roomCode = socketRooms[socket.id];
+    if (roomCode && rooms[roomCode] && socket.id === rooms[roomCode].host) {
+      rooms[roomCode].gameActive = true;
+      io.to(roomCode).emit('gameStarted', rooms[roomCode]);
+      console.log(`Game started in room ${roomCode} by host`);
     }
   });
 
   // Reset game (only host can do this)
   socket.on('resetGame', () => {
-    if (socket.id === gameState.host) {
+    const roomCode = socketRooms[socket.id];
+    if (roomCode && rooms[roomCode] && socket.id === rooms[roomCode].host) {
       // Reset all player positions and scores
-      Object.keys(playerSockets).forEach(key => {
-        playerSockets[key].score = 0;
-        playerSockets[key].position = { x: 0, y: 0 };
+      Object.keys(rooms[roomCode].players).forEach(key => {
+        rooms[roomCode].players[key].score = 0;
+        rooms[roomCode].players[key].position = { x: 0, y: 0 };
       });
-      gameState.gameActive = false;
-      gameState.players = playerSockets;
-      io.emit('gameReset', gameState);
-      console.log('Game reset by host');
+      rooms[roomCode].gameActive = false;
+      io.to(roomCode).emit('gameReset', rooms[roomCode]);
+      console.log(`Game reset in room ${roomCode} by host`);
     }
   });
 
   // Player disconnects
   socket.on('disconnect', () => {
-    const role = socketRoles[socket.id];
-    
-    if (socket.id === gameState.host) {
-      console.log(`Host disconnected: ${socket.id}`);
-      gameState.host = null;
-      gameState.gameActive = false;
-      // Could handle host migration here if needed
+    const roomCode = socketRooms[socket.id];
+    if (roomCode && rooms[roomCode]) {
+      if (socket.id === rooms[roomCode].host) {
+        console.log(`Host disconnected from room ${roomCode}: ${socket.id}`);
+        // Host left, could delete room or handle migration
+        delete rooms[roomCode];
+      } else {
+        delete rooms[roomCode].players[socket.id];
+        io.to(roomCode).emit('playerLeft', rooms[roomCode].players);
+      }
     }
-
-    delete playerSockets[socket.id];
-    delete socketRoles[socket.id];
-    gameState.players = playerSockets;
-
-    io.emit('playerLeft', gameState.players);
-    console.log(`${role || 'Unknown'} disconnected: ${socket.id}`);
+    delete socketRooms[socket.id];
+    console.log(`Player disconnected: ${socket.id}`);
   });
 });
 

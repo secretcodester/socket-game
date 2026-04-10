@@ -24,6 +24,20 @@
   text-shadow: 0 0 15px rgba(179, 0, 255, 0.5);
 }
 
+.header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.room-code {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #ff6b6b;
+  text-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
+}
+
 .player-count {
   font-size: 1.1rem;
   font-weight: bold;

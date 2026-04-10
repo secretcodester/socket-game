@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import HostGameDashboard from './HostGameDashboard';
+import { HostGameDashboard } from './HostGameDashboard';
 import './HostScreen.css';
 
-function HostScreen({
+export const HostScreen = ({
   players,
   myId,
   gameStarted,
   playerName,
   gameSelected,
+  roomCode,
   onStartGame,
   onResetGame,
-}) {
+}) => {
   const [showLobby, setShowLobby] = useState(true);
 
   const handleStartGame = () => {
@@ -67,8 +68,8 @@ function HostScreen({
           </div>
 
           <div className="connection-info">
-            <p>📱 Share your room code or IP address with other players</p>
-            <p>They can join as "Controller" and play on their phones</p>
+            <p>📱 Room Code: <strong>{roomCode}</strong></p>
+            <p>Share this code with other players to join as Controllers</p>
           </div>
         </div>
       </div>
@@ -78,9 +79,8 @@ function HostScreen({
   return (
     <HostGameDashboard
       players={players}
+      roomCode={roomCode}
       onReset={handleResetGame}
     />
   );
 }
-
-export default HostScreen;

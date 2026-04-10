@@ -1,7 +1,7 @@
 import React from 'react';
 import './GameSelection.css';
 
-function GameSelection({ onSelectGame }) {
+export const GameSelection = ({ onSelectGame }) => {
   const games = [
     {
       id: 'game1',
@@ -9,13 +9,6 @@ function GameSelection({ onSelectGame }) {
       description: 'Arena - Players move around, last one standing wins!',
       emoji: '⚔️',
       color: '#667eea'
-    },
-    {
-      id: 'game2',
-      name: 'Game 2',
-      description: 'Creative multiplayer experience with unique mechanics',
-      emoji: '🎮',
-      color: '#f5576c'
     }
   ];
 
@@ -48,5 +41,3 @@ function GameSelection({ onSelectGame }) {
     </div>
   );
 }
-
-export default GameSelection;

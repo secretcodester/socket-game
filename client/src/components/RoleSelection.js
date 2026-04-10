@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './RoleSelection.css';
 
-function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
+export const RoleSelection = ({ onSelectRole, showNamePrompt, onJoin }) => {
   const [playerName, setPlayerName] = useState('');
 
   const handleRoleSelect = (role) => {
@@ -68,5 +68,3 @@ function RoleSelection({ onSelectRole, showNamePrompt, onJoin }) {
     </div>
   );
 }
-
-export default RoleSelection;
