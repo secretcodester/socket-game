@@ -46,9 +46,8 @@ setInterval(() => {
         player.position.x += player.velocity.x;
         player.position.y += player.velocity.y;
         
-        // Keep players on screen (canvas is 1000x650, centered at 400,300)
-        player.position.x = Math.max(-350, Math.min(350, player.position.x));
-        player.position.y = Math.max(-250, Math.min(250, player.position.y));
+        player.position.x = Math.max(-375, Math.min(575, player.position.x));
+        player.position.y = Math.max(-275, Math.min(275, player.position.y));
         
         positionChanged = true;
       }
