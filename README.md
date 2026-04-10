@@ -82,54 +82,6 @@ npm start
 4. **Score**: Earn points through player actions
 5. **End**: Click "End Game" when finished
 
-## Game Architecture
-
-### Server (Socket.IO Events)
-
-- `join` - Player joins the game
-- `playerMove` - Player moves to a new position
-- `playerAction` - Player performs an action (click, etc.)
-- `startGame` - Host starts the game
-- `resetGame` - End the current game
-- `disconnect` - Player disconnects
-
-### Client
-
-- `GameLobby` - Join screen
-- `GameCanvas` - Main game arena with canvas rendering
-- `App` - Main component managing socket connections
-
-## Customization
-
-### Adding Game Mechanics
-
-Edit `server/index.js` to add new game logic:
-- Collision detection
-- Score calculation
-- Power-ups
-- Different game modes
-
-Edit `client/src/components/GameCanvas.js` to:
-- Change visual rendering
-- Add new UI elements
-- Implement different game mechanics
-
-### Broadcasting Events
-
-Add new socket events to sync state:
-
-```javascript
-// Server
-socket.on('customEvent', (data) => {
-  io.emit('customEventUpdate', data);
-});
-
-// Client
-socket.on('customEventUpdate', (data) => {
-  // Handle update
-});
-```
-
 ## Deployment
 
 ### Building for Production
