@@ -24,7 +24,16 @@ export const App = () => {
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
     setSocket(newSocket);
-    setMyId(newSocket.id);
+
+    newSocket.on('connect', () => {
+      console.log(`New socket connected: ${newSocket.id}`);
+      setMyId(newSocket.id);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setMyId('');
+    });
 
     // Listen for game events
     newSocket.on('playerJoined', (updatedPlayers) => {
