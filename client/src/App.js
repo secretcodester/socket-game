@@ -20,6 +20,7 @@ export const App = () => {
   const [gameState, setGameState] = useState(null);
   const [roomCode, setRoomCode] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [gameItems, setGameItems] = useState([]);
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -50,6 +51,7 @@ export const App = () => {
 
     newSocket.on('gameReset', (state) => {
       setGameStarted(false);
+      setGameItems([]); // Clear items
       const filteredPlayers = Object.keys(state.players || {})
         .filter(id => state.players[id].role !== 'host')
         .reduce((acc, id) => { acc[id] = state.players[id]; return acc; }, {});
@@ -78,6 +80,22 @@ export const App = () => {
 
     newSocket.on('error', (error) => {
       alert(error.message);
+    });
+
+    newSocket.on('itemSpawned', (item) => {
+      setGameItems(prev => [...prev, item]);
+    });
+
+    newSocket.on('itemCollected', (data) => {
+      setGameItems(prev => prev.filter(item => item.id !== data.itemId));
+      // Update player score
+      setPlayers(prev => ({
+        ...prev,
+        [data.playerId]: {
+          ...prev[data.playerId],
+          score: data.newScore
+        }
+      }));
     });
 
     return () => newSocket.close();
@@ -157,6 +175,7 @@ export const App = () => {
           playerName="Host"
           gameSelected={gameSelected}
           roomCode={roomCode}
+          gameItems={gameItems}
           onStartGame={handleStartGame}
           onResetGame={handleResetGame}
       />

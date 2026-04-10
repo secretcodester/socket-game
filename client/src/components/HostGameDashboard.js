@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './HostGameDashboard.css';
 
-export const HostGameDashboard = ({ players, roomCode, onReset }) => {
+export const HostGameDashboard = ({ players, roomCode, gameItems, onReset }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
 
@@ -60,6 +60,32 @@ export const HostGameDashboard = ({ players, roomCode, onReset }) => {
         ctx.fillText(`Score: ${player.score || 0}`, x, y + 56);
       });
 
+      // Draw game items
+      gameItems.forEach((item) => {
+        const x = 400 + item.x;
+        const y = 300 + item.y;
+
+        // Draw coin/item
+        ctx.fillStyle = '#ffd700'; // Gold color
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw sparkle effect
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x - 5, y - 5, 3, 0, Math.PI * 2);
+        ctx.arc(x + 5, y - 5, 3, 0, Math.PI * 2);
+        ctx.arc(x - 5, y + 5, 3, 0, Math.PI * 2);
+        ctx.arc(x + 5, y + 5, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
       animationRef.current = requestAnimationFrame(draw);
     };
 
@@ -70,7 +96,7 @@ export const HostGameDashboard = ({ players, roomCode, onReset }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [players]);
+  }, [players, gameItems]);
 
   return (
     <div className="host-dashboard">

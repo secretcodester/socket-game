@@ -25,6 +25,9 @@ app.use(express.static(path.join(__dirname, '../client/build')));
 const rooms = {};
 const socketRooms = {};
 
+// Game items storage
+const gameItems = {};
+
 // Function to generate unique 6-digit room code
 function generateRoomCode() {
   let code;
@@ -32,6 +35,59 @@ function generateRoomCode() {
     code = Math.floor(100000 + Math.random() * 900000).toString();
   } while (rooms[code]);
   return code;
+}
+
+// Function to spawn a new item in a room
+function spawnItem(roomCode) {
+  if (!gameItems[roomCode]) {
+    gameItems[roomCode] = [];
+  }
+  
+  // Spawn up to 3 items per room
+  if (gameItems[roomCode].length < 3) {
+    const item = {
+      id: Date.now() + Math.random(),
+      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
+      y: Math.random() * 400 - 200, // -200 to 200
+      type: 'coin',
+      value: 10
+    };
+    gameItems[roomCode].push(item);
+    io.to(roomCode).emit('itemSpawned', item);
+  }
+}
+
+// Function to check item collection
+function checkItemCollection(roomCode) {
+  if (!rooms[roomCode] || !gameItems[roomCode]) return;
+  
+  Object.keys(rooms[roomCode].players).forEach(playerId => {
+    const player = rooms[roomCode].players[playerId];
+    gameItems[roomCode].forEach((item, index) => {
+      const distance = Math.sqrt(
+        Math.pow(player.position.x - item.x, 2) + 
+        Math.pow(player.position.y - item.y, 2)
+      );
+      
+      if (distance < 30) { // Collection radius
+        // Award points
+        player.score += item.value;
+        
+        // Remove item
+        gameItems[roomCode].splice(index, 1);
+        
+        // Broadcast collection
+        io.to(roomCode).emit('itemCollected', {
+          playerId,
+          itemId: item.id,
+          newScore: player.score
+        });
+        
+        // Spawn new item after a delay
+        setTimeout(() => spawnItem(roomCode), 2000);
+      }
+    });
+  });
 }
 
 // Game loop to update player positions
@@ -56,6 +112,9 @@ setInterval(() => {
     if (positionChanged) {
       io.to(roomCode).emit('playerMoved', room.players);
     }
+    
+    // Check for item collection
+    checkItemCollection(roomCode);
   });
 }, 16); // ~60fps
 
@@ -128,6 +187,15 @@ io.on('connection', (socket) => {
     if (!roomCode || !rooms[roomCode] || socket.id !== rooms[roomCode].host) return;
     
     rooms[roomCode].gameActive = true;
+    
+    // Initialize game items for this room
+    gameItems[roomCode] = [];
+    
+    // Spawn initial items
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => spawnItem(roomCode), i * 500);
+    }
+    
     io.to(roomCode).emit('gameStarted', rooms[roomCode]);
     console.log(`Game started in room ${roomCode} by host`);
   });
@@ -145,6 +213,10 @@ io.on('connection', (socket) => {
       rooms[roomCode].players[key].velocity = { x: 0, y: 0 };
     });
     rooms[roomCode].gameActive = false;
+    
+    // Clear game items
+    delete gameItems[roomCode];
+    
     io.to(roomCode).emit('gameReset', rooms[roomCode]);
     console.log(`Game reset in room ${roomCode} by host`);
   });

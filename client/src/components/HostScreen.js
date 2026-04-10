@@ -7,6 +7,7 @@ export const HostScreen = ({
   gameStarted,
   gameSelected,
   roomCode,
+  gameItems,
   onStartGame,
   onResetGame,
 }) => {
@@ -78,6 +79,7 @@ export const HostScreen = ({
     <HostGameDashboard
       players={players}
       roomCode={roomCode}
+      gameItems={gameItems}
       onReset={handleResetGame}
     />
   );
