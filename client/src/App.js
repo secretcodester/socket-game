@@ -59,7 +59,7 @@ export const App = () => {
       setGameState(state);
     });
 
-    newSocket.on('playerLeft', (updatedPlayers) => {
+    newSocket.on('playerLeave', (updatedPlayers) => {
       const filteredPlayers = Object.keys(updatedPlayers)
         .filter(id => updatedPlayers[id].role !== 'host')
         .reduce((acc, id) => { acc[id] = updatedPlayers[id]; return acc; }, {});

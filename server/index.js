@@ -129,7 +129,7 @@ io.on('connection', (socket) => {
         delete rooms[roomCode];
       } else {
         delete rooms[roomCode].players[socket.id];
-        io.to(roomCode).emit('playerLeft', rooms[roomCode].players);
+        io.to(roomCode).emit('playerLeave', rooms[roomCode].players);
       }
     }
     delete socketRooms[socket.id];
