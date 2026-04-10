@@ -45,11 +45,13 @@ io.on('connection', (socket) => {
     if (role === 'host') {
       // Create new room for host
       const roomCode = generateRoomCode();
+
       rooms[roomCode] = {
         host: socket.id,
         players: {},
         gameActive: false
       };
+      
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       socket.emit('roomCreated', { roomCode });
@@ -57,10 +59,12 @@ io.on('connection', (socket) => {
     } else {
       // Join existing room as controller
       const roomCode = providedRoomCode;
+
       if (!rooms[roomCode]) {
         socket.emit('error', { message: 'Room not found' });
         return;
       }
+
       rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 } };
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
@@ -73,50 +77,54 @@ io.on('connection', (socket) => {
   // Handle player movement
   socket.on('playerMove', (position) => {
     const roomCode = socketRooms[socket.id];
-    if (roomCode && rooms[roomCode] && rooms[roomCode].players[socket.id]) {
-      rooms[roomCode].players[socket.id].position = position;
-      io.to(roomCode).emit('playerMoved', {
-        playerId: socket.id,
-        position: position
-      });
-    }
+    
+    if (!roomCode || !rooms[roomCode] || !rooms[roomCode].players[socket.id]) return;
+    
+    rooms[roomCode].players[socket.id].position = position;
+    io.to(roomCode).emit('playerMoved', {
+      playerId: socket.id,
+      position: position
+    });
   });
 
   // Handle player actions
   socket.on('playerAction', (action) => {
     const roomCode = socketRooms[socket.id];
-    if (roomCode && rooms[roomCode] && rooms[roomCode].players[socket.id]) {
-      // Broadcast action to all players in the room
-      io.to(roomCode).emit('playerAction', {
-        playerId: socket.id,
-        action: action
-      });
-    }
+
+    if (!roomCode || !rooms[roomCode] || !rooms[roomCode].players[socket.id]) return
+
+    // Broadcast action to all players in the room
+    io.to(roomCode).emit('playerAction', {
+      playerId: socket.id,
+      action: action
+    });
   });
 
   // Start game (only host can do this)
   socket.on('startGame', () => {
     const roomCode = socketRooms[socket.id];
-    if (roomCode && rooms[roomCode] && socket.id === rooms[roomCode].host) {
-      rooms[roomCode].gameActive = true;
-      io.to(roomCode).emit('gameStarted', rooms[roomCode]);
-      console.log(`Game started in room ${roomCode} by host`);
-    }
+    
+    if (!roomCode || !rooms[roomCode] || socket.id !== rooms[roomCode].host) return;
+    
+    rooms[roomCode].gameActive = true;
+    io.to(roomCode).emit('gameStarted', rooms[roomCode]);
+    console.log(`Game started in room ${roomCode} by host`);
   });
 
   // Reset game (only host can do this)
   socket.on('resetGame', () => {
     const roomCode = socketRooms[socket.id];
-    if (roomCode && rooms[roomCode] && socket.id === rooms[roomCode].host) {
-      // Reset all player positions and scores
-      Object.keys(rooms[roomCode].players).forEach(key => {
-        rooms[roomCode].players[key].score = 0;
-        rooms[roomCode].players[key].position = { x: 0, y: 0 };
-      });
-      rooms[roomCode].gameActive = false;
-      io.to(roomCode).emit('gameReset', rooms[roomCode]);
-      console.log(`Game reset in room ${roomCode} by host`);
-    }
+    
+    if (!roomCode || !rooms[roomCode] || socket.id !== rooms[roomCode].host) return;
+    
+    // Reset all player positions and scores
+    Object.keys(rooms[roomCode].players).forEach(key => {
+      rooms[roomCode].players[key].score = 0;
+      rooms[roomCode].players[key].position = { x: 0, y: 0 };
+    });
+    rooms[roomCode].gameActive = false;
+    io.to(roomCode).emit('gameReset', rooms[roomCode]);
+    console.log(`Game reset in room ${roomCode} by host`);
   });
 
   // Player disconnects
@@ -125,7 +133,6 @@ io.on('connection', (socket) => {
     if (roomCode && rooms[roomCode]) {
       if (socket.id === rooms[roomCode].host) {
         console.log(`Host disconnected from room ${roomCode}: ${socket.id}`);
-        // Host left, could delete room or handle migration
         delete rooms[roomCode];
       } else {
         delete rooms[roomCode].players[socket.id];

@@ -76,9 +76,7 @@ export const App = () => {
       setGameStarted(state.gameActive);
     });
 
-    newSocket.on('roomCreated', (data) => {
-      setRoomCode(data.roomCode);
-    });
+    newSocket.on('roomCreated', (data) => setRoomCode(data.roomCode));
 
     newSocket.on('error', (error) => {
       alert(error.message);
