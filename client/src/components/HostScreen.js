@@ -4,9 +4,7 @@ import './HostScreen.css';
 
 export const HostScreen = ({
   players,
-  myId,
   gameStarted,
-  playerName,
   gameSelected,
   roomCode,
   onStartGame,
