@@ -154,6 +154,11 @@
   animation: pulse 0.5s infinite alternate;
 }
 
+.action-button.inactive {
+  background: gray;
+  color: white;
+}
+
 .action-button:disabled {
   cursor: not-allowed;
 }

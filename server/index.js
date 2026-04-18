@@ -136,6 +136,14 @@ setInterval(() => {
           action: 'speedBoostEnd'
         });
       }
+      // Check if speed boost should be enabled
+      if (player.speedBoostDisabled && Date.now() > player.speedBoostNextStart) {
+        player.speedBoostDisabled = false;
+        io.to(roomCode).emit('playerAction', {
+          playerId,
+          action: 'speedBoostEnabled'
+        });
+      }
       
       if (player.velocity.x !== 0 || player.velocity.y !== 0) {
         // Apply speed boost effect
@@ -190,7 +198,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 , speedBoostNextStart: 0};
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 , speedBoostDisabled: false, speedBoostNextStart: 0};
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
@@ -216,10 +224,11 @@ io.on('connection', (socket) => {
 
     const player = rooms[roomCode].players[socket.id];
     
-    if (action === 'speedBoost' && !player.speedBoostActive && Date.now() > player.speedBoostNextStart) {
+    if (action === 'speedBoost' && !player.speedBoostActive && !player.speedBoostDisabled) {
       // Activate speed boost for 5 seconds
       player.speedBoostActive = true;
       player.speedBoostEndTime = Date.now() + 5000;
+      player.speedBoostDisabled = true;
       player.speedBoostNextStart = Date.now() + 20000;
       
       // Broadcast speed boost activation
@@ -233,11 +242,22 @@ io.on('connection', (socket) => {
       setTimeout(() => {
         if (rooms[roomCode] && rooms[roomCode].players[socket.id]) {
           rooms[roomCode].players[socket.id].speedBoostActive = false;
+          rooms[roomCode].players[socket.id].speedBoostDisabled = true;
           io.to(roomCode).emit('playerAction', {
             playerId: socket.id,
             action: 'speedBoostEnd'
           });
-        }
+	  io.to(roomCode).emit('playerAction', {
+	    playerId: socket.id,
+	    action: 'speedBoostDisable'
+	  });
+	setTimeout(() => {
+	  rooms[roomCode].players[socket.id].speedBoostDisabled = false;
+	  io.to(roomCode).emit('playerAction', {
+	     playerId: socket.id,
+	     action: 'speedBoostEnable'
+	  });}, 15000);
+	}
       }, 5000);
     }
   });
@@ -274,6 +294,7 @@ io.on('connection', (socket) => {
       rooms[roomCode].players[key].position = { x: 0, y: 0 };
       rooms[roomCode].players[key].velocity = { x: 0, y: 0 };
       rooms[roomCode].players[key].speedBoostActive = false;
+      rooms[roomCode].players[key].speedBoostDisabled = false;
       rooms[roomCode].players[key].speedBoostEndTime = 0;
     });
     rooms[roomCode].gameActive = false;

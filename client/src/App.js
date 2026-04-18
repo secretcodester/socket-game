@@ -21,6 +21,7 @@ export const App = () => {
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [gameItems, setGameItems] = useState([]);
   const [speedBoosts, setSpeedBoosts] = useState({}); // playerId -> {active: boolean, endTime: number}
+  const [speedBoostsDisabled, setSpeedBoostDisabled] = useState({});
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER);
@@ -124,6 +125,25 @@ export const App = () => {
             active: false
           }
         }));
+      } else if (data.action === 'speedBoostEnable') {
+	console.log('Speed boost enabled for', data.playerId);
+	setSpeedBoostDisabled(prev => ({
+	  ...prev,
+	  [data.playerId]: {
+	    ...prev[data.playerId],
+	    active: false
+	  }
+	}));
+	//set button back to rocket
+      } else if (data.action === 'speedBoostDisable') {
+	console.log('Speed Boost disabled for', data.playerId);
+	setSpeedBoostDisabled(prev => ({
+	  ...prev,
+	  [data.playerId]: {
+	    ...prev[data.playerId],
+	    active: true
+	  }
+	}));
       }
     });
 
@@ -253,6 +273,7 @@ export const App = () => {
         onAction={handlePlayerAction}
         players={players}
         speedBoostActive={speedBoosts[myId]?.active || false}
+	speedBoostDisabled={speedBoostsDisabled[myId]?.active || false}
       />
     );
   }

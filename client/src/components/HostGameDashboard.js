@@ -146,7 +146,7 @@ export const HostGameDashboard = ({ players, roomCode, gameItems, speedBoosts, o
 	  ctx.lineWidth = 2;
 	  ctx.stroke();
 
-	  // Optional sparkle (you can keep or remove)
+	  // Sparkle
 	  ctx.fillStyle = '#fff';
 	  ctx.beginPath();
 	  ctx.arc(x - 5, y - 5, 2, 0, Math.PI * 2);

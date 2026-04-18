@@ -3,7 +3,7 @@ import './ControllerScreen.css';
 
 const CONTAINER_RADIUS = 80;
 
-export const ControllerScreen = ({ myId, playerName, onMove, onAction, players, speedBoostActive }) => {
+export const ControllerScreen = ({ myId, playerName, onMove, onAction, players, speedBoostActive, speedBoostDisabled }) => {
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 });
   const joystickRef = useRef(null);
@@ -123,14 +123,15 @@ export const ControllerScreen = ({ myId, playerName, onMove, onAction, players, 
         <div className="action-section">
           <h2>Actions</h2>
           <button 
-            className={`action-button ${speedBoostActive ? 'active' : ''}`}
+            className={`action-button ${speedBoostActive ? 'active' : ''} ${speedBoostDisabled ? 'inactive' : ''}`}
             onMouseDown={handleActionButton}
             onTouchStart={handleActionButton}
-            disabled={speedBoostActive}
+            disabled={speedBoostActive || speedBoostDisabled}
           >
             🚀
           </button>
           {speedBoostActive && <p className="action-status">Speed boost active!</p>}
+	  {speedBoostDisabled && <p className="action-status">Speed boost on cooldown!</p>}
         </div>
       </div>
 
