@@ -6,13 +6,13 @@ import { HostScreen } from './components/HostScreen';
 import { ControllerScreen } from './components/ControllerScreen';
 import './App.css';
 
-const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || window.location.host || 'http://localhost:3001';
+const SOCKET_SERVER = process.env.REACT_APP_SOCKET_URL || `${window.location.hostname}:3001` || 'http://localhost:3001';
 
 console.log('Using socket server:', SOCKET_SERVER);
 
 export const App = () => {
   const [socket, setSocket] = useState(null);
-  const [gameSelected, setGameSelected] = useState(null); // 'game1', 'game2', etc.
+  const [gameSelected, setGameSelected] = useState(null); // 'game1', 'game2', etc.`
   const [role, setRole] = useState(null); // 'host' or 'controller'
   const [playerName, setPlayerName] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
