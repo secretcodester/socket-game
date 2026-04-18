@@ -91,24 +91,70 @@ export const HostGameDashboard = ({ players, roomCode, gameItems, speedBoosts, o
         const y = 300 + item.y;
 
         // Draw coin/item
-        ctx.fillStyle = '#ffd700'; // Gold color
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.fill();
+	if (item.type === 'coin'){
+	  ctx.fillStyle = '#ffd700'; // Gold color
+	  ctx.beginPath();
+	  ctx.arc(x, y, 15, 0, Math.PI * 2);
+	  ctx.fill();
 
-        // Draw border
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+	  // Draw border
+	  ctx.strokeStyle = '#fff';
+	  ctx.lineWidth = 2;
+	  ctx.stroke();
 
-        // Draw sparkle effect
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(x - 5, y - 5, 3, 0, Math.PI * 2);
-        ctx.arc(x + 5, y - 5, 3, 0, Math.PI * 2);
-        ctx.arc(x - 5, y + 5, 3, 0, Math.PI * 2);
-        ctx.arc(x + 5, y + 5, 3, 0, Math.PI * 2);
-        ctx.fill();
+	  // Draw sparkle effect
+	  ctx.fillStyle = '#fff';
+	  ctx.beginPath();
+	  ctx.arc(x - 5, y - 5, 3, 0, Math.PI * 2);
+	  ctx.arc(x + 5, y - 5, 3, 0, Math.PI * 2);
+	  ctx.arc(x - 5, y + 5, 3, 0, Math.PI * 2);
+	  ctx.arc(x + 5, y + 5, 3, 0, Math.PI * 2);
+	  ctx.fill();
+	}else if (item.type === 'star'){//draw star item
+	  ctx.fillStyle = '#ffd700'; // Gold color
+	  ctx.beginPath();
+
+	  const spikes = 5;
+	  const outerRadius = 15;
+	  const innerRadius = 7;
+
+	  let rot = Math.PI / 2 * 3;
+	  let step = Math.PI / spikes;
+
+	  ctx.moveTo(x, y - outerRadius);
+
+	  for (let i = 0; i < spikes; i++) {
+	      // outer point
+	      let xOuter = x + Math.cos(rot) * outerRadius;
+	      let yOuter = y + Math.sin(rot) * outerRadius;
+	      ctx.lineTo(xOuter, yOuter);
+	      rot += step;
+
+	      // inner point
+	      let xInner = x + Math.cos(rot) * innerRadius;
+	      let yInner = y + Math.sin(rot) * innerRadius;
+	      ctx.lineTo(xInner, yInner);
+	      rot += step;
+	  }
+
+	  ctx.lineTo(x, y - outerRadius);
+	  ctx.closePath();
+	  ctx.fill();
+
+	  // Border
+	  ctx.strokeStyle = '#fff';
+	  ctx.lineWidth = 2;
+	  ctx.stroke();
+
+	  // Sparkle
+	  ctx.fillStyle = '#fff';
+	  ctx.beginPath();
+	  ctx.arc(x - 5, y - 5, 2, 0, Math.PI * 2);
+	  ctx.arc(x + 5, y - 5, 2, 0, Math.PI * 2);
+	  ctx.arc(x - 5, y + 5, 2, 0, Math.PI * 2);
+	  ctx.arc(x + 5, y + 5, 2, 0, Math.PI * 2);
+	  ctx.fill();
+	}
       });
 
       animationRef.current = requestAnimationFrame(draw);

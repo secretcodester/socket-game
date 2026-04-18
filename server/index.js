@@ -46,15 +46,27 @@ function spawnItem(roomCode) {
   }
   
   if (gameItems[roomCode].length < MAX_ITEMS) {
-    const item = {
-      id: Date.now() + Math.random(),
-      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
-      y: Math.random() * 400 - 200, // -200 to 200
-      type: 'coin',
-      value: 10
-    };
-    gameItems[roomCode].push(item);
-    io.to(roomCode).emit('itemSpawned', item);
+    if (Math.random() * 2 < 1.5){
+	    const item = {
+	      id: Date.now() + Math.random(),
+	      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
+	      y: Math.random() * 400 - 200, // -200 to 200
+	      type: 'coin',
+	      value: 10
+	    };
+    	gameItems[roomCode].push(item);
+    	io.to(roomCode).emit('itemSpawned', item);
+    } else {
+	const item = {
+		id: Date.now() + Math.random(),
+		x: Math.random() * 600 - 300,
+		y: Math.random() * 400 - 200,
+		type: 'star',
+		value: 0
+	};
+    	gameItems[roomCode].push(item);
+    	io.to(roomCode).emit('itemSpawned', item);
+    }
   }
 }
 
@@ -84,9 +96,12 @@ function checkItemCollection(roomCode) {
       );
       
       if (distance < 30) { // Collection radius
-        // Award points
-        player.score += item.value;
-        
+	if (item.type === 'coin'){
+          // Award points
+          player.score += item.value;
+	} else if (item.type === 'star'){
+	  player.score *= 2;
+	}
         // Remove item
         gameItems[roomCode].splice(index, 1);
         
@@ -119,6 +134,14 @@ setInterval(() => {
         io.to(roomCode).emit('playerAction', {
           playerId,
           action: 'speedBoostEnd'
+        });
+      }
+      // Check if speed boost should be enabled
+      if (player.speedBoostDisabled && Date.now() > player.speedBoostNextStart) {
+        player.speedBoostDisabled = false;
+        io.to(roomCode).emit('playerAction', {
+          playerId,
+          action: 'speedBoostEnabled'
         });
       }
       
@@ -175,7 +198,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 };
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 , speedBoostDisabled: false, speedBoostNextStart: 0};
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
@@ -201,10 +224,12 @@ io.on('connection', (socket) => {
 
     const player = rooms[roomCode].players[socket.id];
     
-    if (action === 'speedBoost' && !player.speedBoostActive) {
+    if (action === 'speedBoost' && !player.speedBoostActive && !player.speedBoostDisabled) {
       // Activate speed boost for 5 seconds
       player.speedBoostActive = true;
       player.speedBoostEndTime = Date.now() + 5000;
+      player.speedBoostDisabled = true;
+      player.speedBoostNextStart = Date.now() + 20000;
       
       // Broadcast speed boost activation
       io.to(roomCode).emit('playerAction', {
@@ -217,11 +242,22 @@ io.on('connection', (socket) => {
       setTimeout(() => {
         if (rooms[roomCode] && rooms[roomCode].players[socket.id]) {
           rooms[roomCode].players[socket.id].speedBoostActive = false;
+          rooms[roomCode].players[socket.id].speedBoostDisabled = true;
           io.to(roomCode).emit('playerAction', {
             playerId: socket.id,
             action: 'speedBoostEnd'
           });
-        }
+	  io.to(roomCode).emit('playerAction', {
+	    playerId: socket.id,
+	    action: 'speedBoostDisable'
+	  });
+	setTimeout(() => {
+	  rooms[roomCode].players[socket.id].speedBoostDisabled = false;
+	  io.to(roomCode).emit('playerAction', {
+	     playerId: socket.id,
+	     action: 'speedBoostEnable'
+	  });}, 15000);
+	}
       }, 5000);
     }
   });
@@ -258,6 +294,7 @@ io.on('connection', (socket) => {
       rooms[roomCode].players[key].position = { x: 0, y: 0 };
       rooms[roomCode].players[key].velocity = { x: 0, y: 0 };
       rooms[roomCode].players[key].speedBoostActive = false;
+      rooms[roomCode].players[key].speedBoostDisabled = false;
       rooms[roomCode].players[key].speedBoostEndTime = 0;
     });
     rooms[roomCode].gameActive = false;
