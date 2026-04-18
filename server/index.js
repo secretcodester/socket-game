@@ -190,7 +190,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 };
+      rooms[roomCode].players[socket.id] = { id: socket.id, name, role, score: 0, position: { x: 0, y: 0 }, velocity: { x: 0, y: 0 }, speedBoostActive: false, speedBoostEndTime: 0 , speedBoostNextStart: 0};
       socketRooms[socket.id] = roomCode;
       socket.join(roomCode);
       io.to(roomCode).emit('playerJoined', rooms[roomCode].players);
@@ -216,10 +216,11 @@ io.on('connection', (socket) => {
 
     const player = rooms[roomCode].players[socket.id];
     
-    if (action === 'speedBoost' && !player.speedBoostActive) {
+    if (action === 'speedBoost' && !player.speedBoostActive && Date.now() > player.speedBoostNextStart) {
       // Activate speed boost for 5 seconds
       player.speedBoostActive = true;
       player.speedBoostEndTime = Date.now() + 5000;
+      player.speedBoostNextStart = Date.now() + 20000;
       
       // Broadcast speed boost activation
       io.to(roomCode).emit('playerAction', {
