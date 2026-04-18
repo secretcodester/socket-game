@@ -46,7 +46,7 @@ function spawnItem(roomCode) {
   }
   
   if (gameItems[roomCode].length < MAX_ITEMS) {
-    if (Math.random() * 2 < 1){
+    if (Math.random() * 2 < 1.5){
 	    const item = {
 	      id: Date.now() + Math.random(),
 	      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
@@ -96,9 +96,12 @@ function checkItemCollection(roomCode) {
       );
       
       if (distance < 30) { // Collection radius
-        // Award points
-        player.score += item.value;
-        
+	if (item.type === 'coin'){
+          // Award points
+          player.score += item.value;
+	} else if (item.type === 'star'){
+	  player.score *= 2;
+	}
         // Remove item
         gameItems[roomCode].splice(index, 1);
         
