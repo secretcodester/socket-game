@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -46,15 +46,27 @@ function spawnItem(roomCode) {
   }
   
   if (gameItems[roomCode].length < MAX_ITEMS) {
-    const item = {
-      id: Date.now() + Math.random(),
-      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
-      y: Math.random() * 400 - 200, // -200 to 200
-      type: 'coin',
-      value: 10
-    };
-    gameItems[roomCode].push(item);
-    io.to(roomCode).emit('itemSpawned', item);
+    if (Math.random() * 2 < 1){
+	    const item = {
+	      id: Date.now() + Math.random(),
+	      x: Math.random() * 600 - 300, // -300 to 300 (within screen bounds)
+	      y: Math.random() * 400 - 200, // -200 to 200
+	      type: 'coin',
+	      value: 10
+	    };
+    	gameItems[roomCode].push(item);
+    	io.to(roomCode).emit('itemSpawned', item);
+    } else {
+	const item = {
+		id: Date.now() + Math.random(),
+		x: Math.random() * 600 - 300,
+		y: Math.random() * 400 - 200,
+		type: 'star',
+		value: 0
+	};
+    	gameItems[roomCode].push(item);
+    	io.to(roomCode).emit('itemSpawned', item);
+    }
   }
 }
 
